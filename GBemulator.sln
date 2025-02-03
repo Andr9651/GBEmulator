@@ -1,8 +1,10 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GBemulator", "GBemulator.csproj", "{EF693763-C873-7F01-FE4A-611B6807DCD5}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GBemulator", "Emulator/GBemulator.csproj", "{EF693763-C873-7F01-FE4A-611B6807DCD5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{D4A2E975-E283-4E36-8B32-276628D958C6}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -14,6 +16,10 @@ Global
 		{EF693763-C873-7F01-FE4A-611B6807DCD5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EF693763-C873-7F01-FE4A-611B6807DCD5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EF693763-C873-7F01-FE4A-611B6807DCD5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D4A2E975-E283-4E36-8B32-276628D958C6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D4A2E975-E283-4E36-8B32-276628D958C6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D4A2E975-E283-4E36-8B32-276628D958C6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D4A2E975-E283-4E36-8B32-276628D958C6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
