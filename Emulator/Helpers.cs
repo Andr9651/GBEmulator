@@ -1,4 +1,4 @@
-namespace GB;
+namespace GBemulator;
 
 public static class Helpers
 {

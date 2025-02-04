@@ -1,7 +1,7 @@
-﻿using GB;
+﻿using GBemulator;
 
 namespace Tests;
-public class UnitTest1
+public class HelperUnitTests
 {
     [Theory]
     [InlineData(0xff00, 0xff)]
