@@ -2,7 +2,7 @@ namespace GBemulator.MemoryManagementUnit;
 
 public class MMU
 {
-    private readonly byte[] _memory = new byte[16 ^ 2];
+    private readonly byte[] _memory = new byte[0xffff];
 
     public MMU()
     {
