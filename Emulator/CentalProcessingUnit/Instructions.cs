@@ -25,12 +25,10 @@ public partial class CPU
 
     public void NoOp()
     {
-        ProgramCounter++;
     }
 
     public void Stop()
     {
-        ProgramCounter++;
         running = false;
     }
 }
