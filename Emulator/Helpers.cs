@@ -58,4 +58,9 @@ public static class Helpers
 
         return bits;
     }
+
+    public static ushort BytesToUshort(byte mostSignificant, byte leastSignificant)
+    {
+        return (ushort)((mostSignificant << 8) + leastSignificant);
+    }
 }

@@ -2,28 +2,28 @@ namespace GBemulator.CentalProcessingUnit;
 
 public partial class CPU
 {
-    private Action[] _instructions8Bit = new Action[0xff];
-    private Action[] _instructions16Bit = new Action[0xff];
+    private Action[] _instructions = new Action[0xff];
+    private Action[] _cbInstructions = new Action[0xff];
 
     private void LoadInstructions()
     {
-        _instructions8Bit[0x00] = NoOp;
-        _instructions8Bit[0x10] = Stop;
+        _instructions[0x00] = NoOp;
+        _instructions[0x10] = Stop;
 
-        _instructions8Bit[0x01] = Load16BitRegister((value) => BC = value);
-        _instructions8Bit[0x11] = Load16BitRegister((value) => DE = value);
-        _instructions8Bit[0x21] = Load16BitRegister((value) => HL = value);
-        _instructions8Bit[0x31] = Load16BitRegister((value) => StackPointer = value);
+        _instructions[0x01] = () => Load16BitRegister(ref B, ref C);
+        _instructions[0x11] = () => Load16BitRegister(ref D, ref E);
+        _instructions[0x21] = () => Load16BitRegister(ref H, ref L);
+        _instructions[0x31] = LoadStackPointer;
 
-        _instructions8Bit[0x03] = Increment16BitRegister(() => BC++);
-        _instructions8Bit[0x13] = Increment16BitRegister(() => DE++);
-        _instructions8Bit[0x23] = Increment16BitRegister(() => HL++);
-        _instructions8Bit[0x33] = Increment16BitRegister(() => StackPointer++);
+        _instructions[0x03] = () => Increment16BitRegister(ref B, ref C);
+        _instructions[0x13] = () => Increment16BitRegister(ref D, ref E);
+        _instructions[0x23] = () => Increment16BitRegister(ref H, ref L);
+        _instructions[0x33] = IncrementStackPointer;
     }
 
     public void ExecuteInstruction(byte instructionCode)
     {
-        Action instruction = _instructions8Bit[instructionCode];
+        Action instruction = _instructions[instructionCode];
 
         if (instruction == null)
         {
@@ -42,18 +42,38 @@ public partial class CPU
         running = false;
     }
 
-    public Action Load16BitRegister(Action<ushort> targetRegister)
+    public void Load16BitRegister(ref byte mostSignificant, ref byte leastSignificant)
     {
-        return () =>
-        {
-            ushort value = _mmu.Read16(ProgramCounter);
-            ProgramCounter += 2;
-            targetRegister(value);
-        };
+        leastSignificant = _mmu.Read8(ProgramCounter);
+        ProgramCounter++;
+
+        mostSignificant = _mmu.Read8(ProgramCounter);
+        ProgramCounter++;
     }
 
-    public Action Increment16BitRegister(Action targetRegister)
+    public void LoadStackPointer()
     {
-        return targetRegister;
+        byte leastSignificant = _mmu.Read8(ProgramCounter);
+        ProgramCounter++;
+
+        byte mostSignificant = _mmu.Read8(ProgramCounter);
+        ProgramCounter++;
+
+        StackPointer = Helpers.BytesToUshort(mostSignificant, leastSignificant);
+    }
+
+    public void Increment16BitRegister(ref byte mostSignificant, ref byte leastSignificant)
+    {
+        leastSignificant++;
+
+        if (leastSignificant == 0)
+        {
+            mostSignificant++;
+        }
+    }
+
+    public void IncrementStackPointer()
+    {
+        StackPointer++;
     }
 }

@@ -6,13 +6,16 @@ public partial class CPU
 {
     public ushort StackPointer { get; set; }
     public ushort ProgramCounter { get; set; }
+    private byte _accumulator;
+    private byte _flags;
+
+    public byte Flags
+    {
+        get { return _flags; }
+        set { _flags = value; }
+    }
 
     public ushort AccumulatorFlags { get; set; }
-    public byte Accumulator
-    {
-        get => AccumulatorFlags.GetHigh();
-        set => AccumulatorFlags = AccumulatorFlags.SetHigh(value);
-    }
 
     /// <summary>
     /// 7 bit in the AccumulatorFlags register (AF) <br />
@@ -54,41 +57,16 @@ public partial class CPU
         set => AccumulatorFlags = AccumulatorFlags.SetBit(4, value);
     }
 
-    public ushort BC { get; set; }
-    public byte B
-    {
-        get => BC.GetHigh();
-        set => BC = BC.SetHigh(value);
-    }
-    public byte C
-    {
-        get => BC.GetLow();
-        set => BC = BC.SetLow(value);
-    }
+    public byte B;
+    public byte C;
+    public byte D;
+    public byte E;
+    public byte H;
+    public byte L;
+    public ushort BC => (ushort)((B << 8) + C);
+    public ushort DE => (ushort)((D << 8) + E);
+    public ushort HL => (ushort)((H << 8) + L);
 
-    public ushort DE { get; set; }
-    public byte D
-    {
-        get => DE.GetHigh();
-        set => DE = DE.SetHigh(value);
-    }
-    public byte E
-    {
-        get => DE.GetLow();
-        set => DE = DE.SetLow(value);
-    }
-
-    public ushort HL { get; set; }
-    public byte H
-    {
-        get => HL.GetHigh();
-        set => HL = HL.SetHigh(value);
-    }
-    public byte L
-    {
-        get => HL.GetLow();
-        set => HL = HL.SetLow(value);
-    }
 
     public override string ToString()
     {
