@@ -33,7 +33,7 @@ public partial class CPU
     /// 5 bit in the AccumulatorFlags register (AF) <br />
     /// Called h
     /// </summary>
-    public bool HalfCarryflag
+    public bool HalfCarryFlag
     {
         get => Flags.GetBit(5);
         set => Flags = Flags.SetBit(5, value);
@@ -43,7 +43,7 @@ public partial class CPU
     /// 4 bit in the AccumulatorFlags register (AF) <br />
     /// Called c
     /// </summary>
-    public bool Carryflag
+    public bool CarryFlag
     {
         get => Flags.GetBit(4);
         set => Flags = Flags.SetBit(4, value);
