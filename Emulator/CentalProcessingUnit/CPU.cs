@@ -19,7 +19,6 @@ public partial class CPU
         while (running == true)
         {
             byte instructionCode = _mmu.Read8(ProgramCounter);
-            ProgramCounter++;
             ExecuteInstruction(instructionCode);
             IncrementProgramCounter(instructionCode);
         }

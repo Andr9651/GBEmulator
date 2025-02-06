@@ -5,13 +5,16 @@ public partial class CPU
 
     public void ExecuteInstruction(byte instructionCode)
     {
+        // ProgramCounter increments have been deferred so this takes care of the increment that would have happened when reading the next instruction
+        ushort programCounter = (ushort)(ProgramCounter + 1);
+
         switch (instructionCode)
         {
             case 0x00:
                 // No Operation
                 break;
             case 0x01:
-                BC = _mmu.Read16(ProgramCounter);
+                BC = _mmu.Read16(programCounter);
                 break;
             case 0x02:
                 _mmu.Write8(BC, Accumulator);

@@ -26,9 +26,6 @@ public partial class CPU
 
     private void IncrementProgramCounter(ushort instructionCode)
     {
-        // The table includes the increment for fetching the instruction
-        // We already do that in the execute loop so thats undone here
-        ProgramCounter--;
         ProgramCounter += ProgramCounterIncrementsPerInstruction[instructionCode];
 
         if (instructionCode == 0xCB)
