@@ -20,9 +20,22 @@ byte[] program = {
 
 var mmu = new MMU(program);
 
-var cpu = new CPU(mmu);
+var registers = new Registers
+{
+    Accumulator = 0,
+    Flags = 0,
+    B = 0,
+    C = 0,
+    D = 0,
+    E = 0,
+    H = 0,
+    L = 0,
+    ProgramCounter = 0,
+    StackPointer = 0,
+};
+
+var cpu = new CPU(mmu, registers);
 
 cpu.Run();
 
-Console.WriteLine($"{cpu.BC:X4}");
-Console.WriteLine(cpu);
+Console.WriteLine($"{cpu.Registers}");

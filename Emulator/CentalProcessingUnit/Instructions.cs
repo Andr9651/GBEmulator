@@ -94,7 +94,7 @@ public partial class CPU
                 break;
 
             case 0x10:
-                running = false;
+                _running = false;
                 break;
             case 0x11:
                 break;
