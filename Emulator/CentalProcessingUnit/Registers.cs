@@ -6,16 +6,8 @@ public partial class CPU
 {
     public ushort StackPointer { get; set; }
     public ushort ProgramCounter { get; set; }
-    private byte _accumulator;
-    private byte _flags;
-
-    public byte Flags
-    {
-        get { return _flags; }
-        set { _flags = value; }
-    }
-
-    public ushort AccumulatorFlags { get; set; }
+    public byte Accumulator { get; set; }
+    public byte Flags { get; set; }
 
     /// <summary>
     /// 7 bit in the AccumulatorFlags register (AF) <br />
@@ -23,8 +15,8 @@ public partial class CPU
     /// </summary>
     public bool ZeroFlag
     {
-        get => AccumulatorFlags.GetBit(7);
-        set => AccumulatorFlags = AccumulatorFlags.SetBit(7, value);
+        get => Flags.GetBit(7);
+        set => Flags = Flags.SetBit(7, value);
     }
 
     /// <summary>
@@ -33,8 +25,8 @@ public partial class CPU
     /// </summary>
     public bool SubtractionFlag
     {
-        get => AccumulatorFlags.GetBit(6);
-        set => AccumulatorFlags = AccumulatorFlags.SetBit(6, value);
+        get => Flags.GetBit(6);
+        set => Flags = Flags.SetBit(6, value);
     }
 
     /// <summary>
@@ -43,8 +35,8 @@ public partial class CPU
     /// </summary>
     public bool HalfCarryflag
     {
-        get => AccumulatorFlags.GetBit(5);
-        set => AccumulatorFlags = AccumulatorFlags.SetBit(5, value);
+        get => Flags.GetBit(5);
+        set => Flags = Flags.SetBit(5, value);
     }
 
     /// <summary>
@@ -53,8 +45,8 @@ public partial class CPU
     /// </summary>
     public bool Carryflag
     {
-        get => AccumulatorFlags.GetBit(4);
-        set => AccumulatorFlags = AccumulatorFlags.SetBit(4, value);
+        get => Flags.GetBit(4);
+        set => Flags = Flags.SetBit(4, value);
     }
 
     public byte B;
@@ -63,9 +55,47 @@ public partial class CPU
     public byte E;
     public byte H;
     public byte L;
-    public ushort BC => (ushort)((B << 8) + C);
-    public ushort DE => (ushort)((D << 8) + E);
-    public ushort HL => (ushort)((H << 8) + L);
+
+    public ushort AccumulatorFlags
+    {
+        get => Helpers.BytesToUshort(Accumulator, Flags);
+        set
+        {
+            Accumulator = (byte)(value << 8);
+            Flags = (byte)(value & 0x0f);
+        }
+    }
+
+    public ushort BC
+    {
+        get => Helpers.BytesToUshort(B, C);
+        set
+        {
+            var (b, c) = Helpers.UshortToBytes(value);
+            B = b;
+            C = c;
+        }
+    }
+
+    public ushort DE
+    {
+        get => Helpers.BytesToUshort(D, E);
+        set
+        {
+            D = (byte)(value << 8);
+            E = (byte)(value & 0x0f);
+        }
+    }
+
+    public ushort HL
+    {
+        get => Helpers.BytesToUshort(H, L);
+        set
+        {
+            H = (byte)(value << 8);
+            L = (byte)(value & 0x0f);
+        }
+    }
 
 
     public override string ToString()

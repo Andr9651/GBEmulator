@@ -101,4 +101,15 @@ public class HelperUnitTests
 
         Assert.Throws<ArgumentException>(() => value.SetBit(place, true));
     }
+
+    [Fact]
+    public void BytesToUshort()
+    {
+        byte leastSignificant = 0x0F;
+        byte mostSignificant = 0xF0;
+
+        var result = Helpers.BytesToUshort(mostSignificant, leastSignificant);
+
+        Assert.Equal(0xF00F, result);
+    }
 }

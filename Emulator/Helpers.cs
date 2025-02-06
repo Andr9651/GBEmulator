@@ -40,6 +40,18 @@ public static class Helpers
         return bits != 0;
     }
 
+    public static bool GetBit(this byte bits, byte place)
+    {
+        if (place > 7)
+        {
+            throw new ArgumentException("Place must be between 0-7", nameof(place));
+        }
+
+        bits >>= place;
+        bits &= 1;
+        return bits != 0;
+    }
+
     public static ushort SetBit(this ushort bits, byte place, bool value)
     {
         if (place > 15)
@@ -59,8 +71,35 @@ public static class Helpers
         return bits;
     }
 
+    public static byte SetBit(this byte bits, byte place, bool value)
+    {
+        if (place > 7)
+        {
+            throw new ArgumentException("Place must be between 0-7", nameof(place));
+        }
+
+        byte mask = (byte)(1 << place);
+        mask ^= byte.MaxValue;
+        bits &= mask;
+
+        if (value == true)
+        {
+            bits += (byte)(1 << place);
+        }
+
+        return bits;
+    }
+
     public static ushort BytesToUshort(byte mostSignificant, byte leastSignificant)
     {
         return (ushort)((mostSignificant << 8) + leastSignificant);
+    }
+
+    public static (byte, byte) UshortToBytes(ushort value)
+    {
+        byte leastSignificant = (byte)(value & byte.MaxValue);
+        byte mostSignificant = (byte)(value >> 8);
+
+        return (mostSignificant, leastSignificant);
     }
 }

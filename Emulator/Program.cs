@@ -1,6 +1,12 @@
 ﻿using GBemulator.CentalProcessingUnit;
 using GBemulator.MemoryManagementUnit;
 
+// for (int i = 0; i <= 0xFF; i++)
+// {
+//     Console.WriteLine($"case 0x{i:X2}: ");
+//     Console.WriteLine("break;");
+// }
+
 byte[] program = {
     0x00,
 

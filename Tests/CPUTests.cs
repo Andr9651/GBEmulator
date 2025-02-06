@@ -13,7 +13,7 @@ public class CPUTests
             0x00,
             0x01, 0x0f, 0xf0,
             0x03,
-            0x10,
+            0x10, 0x00
         };
 
         var mmu = new MMU(program);
@@ -23,6 +23,6 @@ public class CPUTests
         cpu.Run();
 
         Assert.Equal(0xf010, cpu.BC);
-        Assert.Equal(6, cpu.ProgramCounter);
+        Assert.Equal(7, cpu.ProgramCounter);
     }
 }
