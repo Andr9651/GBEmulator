@@ -1,4 +1,4 @@
-using GBemulator.CentalProcessingUnit;
+using GBemulator.CentralProcessingUnit;
 using GBemulator.MemoryManagementUnit;
 
 namespace Tests;

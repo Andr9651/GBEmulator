@@ -1,5 +1,5 @@
 
-namespace GBemulator.CentalProcessingUnit;
+namespace GBemulator.CentralProcessingUnit;
 
 public partial class CPU
 {

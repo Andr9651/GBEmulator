@@ -1,4 +1,4 @@
-﻿using GBemulator.CentalProcessingUnit;
+﻿using GBemulator.CentralProcessingUnit;
 using GBemulator.MemoryManagementUnit;
 
 // for (int i = 0; i <= 0xFF; i++)

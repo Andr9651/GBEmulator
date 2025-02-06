@@ -1,4 +1,4 @@
-namespace GBemulator.CentalProcessingUnit;
+namespace GBemulator.CentralProcessingUnit;
 
 public struct Registers
 {
