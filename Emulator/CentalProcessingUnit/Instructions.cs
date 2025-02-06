@@ -5,7 +5,7 @@ public partial class CPU
 
     public void ExecuteInstruction(byte instructionCode)
     {
-        // ProgramCounter increments have been deferred so this takes care of the increment that would have happened when reading the next instruction
+        // ProgramCounter increments have been deferred so this takes care of the increment that would have happened when reading the current instruction
         ushort programCounter = (ushort)(ProgramCounter + 1);
 
         switch (instructionCode)
@@ -23,28 +23,74 @@ public partial class CPU
                 BC++;
                 break;
             case 0x04:
+                B++;
+                ZeroFlag = B == 0;
+                SubtractionFlag = false;
+                HalfCarryFlag = B.GetBit(3) == true; // I'm not quite sure i understand this yet
                 break;
             case 0x05:
+                B--;
+                ZeroFlag = B == 0;
+                SubtractionFlag = true;
+                HalfCarryFlag = B.GetBit(3) == true; // I'm not quite sure i understand this yet
                 break;
             case 0x06:
+                B = _mmu.Read8(programCounter);
                 break;
             case 0x07:
+                Accumulator = Accumulator.RotateByteLeft();
+                ZeroFlag = false;
+                SubtractionFlag = false;
+                HalfCarryFlag = false;
+                CarryFlag = Accumulator.GetBit(0); // old bit 7, now at bit 0
                 break;
             case 0x08:
+                ushort address = _mmu.Read16(programCounter);
+                _mmu.Write16(address, StackPointer);
                 break;
             case 0x09:
+                int result = HL + BC;
+                if (result >= 0xFFFF)
+                {
+                    result -= 0xFFFF;
+                    CarryFlag = true;
+                }
+                else
+                {
+                    CarryFlag = false;
+                }
+                HL = (ushort)result;
+
+                HalfCarryFlag = HL.GetBit(3) == true; // I'm not quite sure i understand this yet
+                SubtractionFlag = false;
                 break;
             case 0x0A:
+                Accumulator = _mmu.Read8(BC);
                 break;
             case 0x0B:
+                BC--;
                 break;
             case 0x0C:
+                C++;
+                ZeroFlag = C == 0;
+                SubtractionFlag = false;
+                HalfCarryFlag = C.GetBit(3) == true; // I'm not quite sure i understand this yet
                 break;
             case 0x0D:
+                C--;
+                ZeroFlag = C == 0;
+                SubtractionFlag = true;
+                HalfCarryFlag = C.GetBit(3) == true; // I'm not quite sure i understand this yet
                 break;
             case 0x0E:
+                C = _mmu.Read8(programCounter);
                 break;
             case 0x0F:
+                Accumulator = Accumulator.RotateByteRight();
+                ZeroFlag = false;
+                SubtractionFlag = false;
+                HalfCarryFlag = false;
+                CarryFlag = Accumulator.GetBit(7); // old bit 0, now at bit 7
                 break;
 
             case 0x10:
