@@ -2,8 +2,46 @@ namespace GBemulator.CentralProcessingUnit;
 
 public partial class CPU
 {
+    private void Add16bitRegisterToHL(ushort value)
+    {
+        int result = HL + BC;
+        if (result >= 0xFFFF)
+        {
+            result -= 0xFFFF;
+            CarryFlag = true;
+        }
+        else
+        {
+            CarryFlag = false;
+        }
 
-    public void ExecuteInstruction(byte instructionCode)
+        HL = (ushort)result;
+
+        HalfCarryFlag = HL.GetBit(3) == true; // I'm not quite sure i understand this yet
+        SubtractionFlag = false;
+    }
+
+    private byte Increment8bitRegister(byte value)
+    {
+        value++;
+        ZeroFlag = B == 0;
+        SubtractionFlag = false;
+        HalfCarryFlag = B.GetBit(3) == true; // I'm not quite sure i understand this yet
+
+        return value;
+    }
+
+    private byte Decrement8bitRegister(byte value)
+    {
+        value--;
+        ZeroFlag = B == 0;
+        SubtractionFlag = true;
+        HalfCarryFlag = B.GetBit(3) == true; // I'm not quite sure i understand this yet
+
+        return value;
+    }
+
+    private void ExecuteInstruction(byte instructionCode)
     {
         // ProgramCounter increments have been deferred so this takes care of the increment that would have happened when reading the current instruction
         ushort programCounter = (ushort)(ProgramCounter + 1);
@@ -23,16 +61,10 @@ public partial class CPU
                 BC++;
                 break;
             case 0x04:
-                B++;
-                ZeroFlag = B == 0;
-                SubtractionFlag = false;
-                HalfCarryFlag = B.GetBit(3) == true; // I'm not quite sure i understand this yet
+                B = Increment8bitRegister(B);
                 break;
             case 0x05:
-                B--;
-                ZeroFlag = B == 0;
-                SubtractionFlag = true;
-                HalfCarryFlag = B.GetBit(3) == true; // I'm not quite sure i understand this yet
+                B = Decrement8bitRegister(B);
                 break;
             case 0x06:
                 B = _mmu.Read8(programCounter);
@@ -49,20 +81,7 @@ public partial class CPU
                 _mmu.Write16(address, StackPointer);
                 break;
             case 0x09:
-                int result = HL + BC;
-                if (result >= 0xFFFF)
-                {
-                    result -= 0xFFFF;
-                    CarryFlag = true;
-                }
-                else
-                {
-                    CarryFlag = false;
-                }
-                HL = (ushort)result;
-
-                HalfCarryFlag = HL.GetBit(3) == true; // I'm not quite sure i understand this yet
-                SubtractionFlag = false;
+                Add16bitRegisterToHL(BC);
                 break;
             case 0x0A:
                 Accumulator = _mmu.Read8(BC);
@@ -71,16 +90,10 @@ public partial class CPU
                 BC--;
                 break;
             case 0x0C:
-                C++;
-                ZeroFlag = C == 0;
-                SubtractionFlag = false;
-                HalfCarryFlag = C.GetBit(3) == true; // I'm not quite sure i understand this yet
+                C = Increment8bitRegister(C);
                 break;
             case 0x0D:
-                C--;
-                ZeroFlag = C == 0;
-                SubtractionFlag = true;
-                HalfCarryFlag = C.GetBit(3) == true; // I'm not quite sure i understand this yet
+                C = Decrement8bitRegister(C);
                 break;
             case 0x0E:
                 C = _mmu.Read8(programCounter);
