@@ -102,4 +102,22 @@ public static class Helpers
 
         return (mostSignificant, leastSignificant);
     }
+
+    public static byte RotateByteLeft(this byte value)
+    {
+        bool bit7 = GetBit(value, 7);
+        value <<= 1;
+        value = SetBit(value, 0, bit7);
+
+        return value;
+    }
+
+    public static byte RotateByteRight(this byte value)
+    {
+        bool bit0 = GetBit(value, 0);
+        value >>= 1;
+        value = SetBit(value, 7, bit0);
+
+        return value;
+    }
 }

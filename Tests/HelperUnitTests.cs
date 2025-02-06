@@ -112,4 +112,28 @@ public class HelperUnitTests
 
         Assert.Equal(0xF00F, result);
     }
+
+    [Theory]
+    [InlineData(0b0011_0011, 0b0110_0110)]
+    [InlineData(0b1100_1100, 0b1001_1001)]
+    [InlineData(0b1111_1111, 0b1111_1111)]
+    [InlineData(0b0000_0000, 0b0000_0000)]
+    public void RotateByteLeft(byte value, byte expected)
+    {
+        byte result = value.RotateByteLeft();
+
+        Assert.Equal(expected, result);
+    }
+
+    [Theory]
+    [InlineData(0b0110_0110, 0b0011_0011)]
+    [InlineData(0b1001_1001, 0b1100_1100)]
+    [InlineData(0b1111_1111, 0b1111_1111)]
+    [InlineData(0b0000_0000, 0b0000_0000)]
+    public void RotateByteRight(byte value, byte expected)
+    {
+        byte result = value.RotateByteRight();
+
+        Assert.Equal(expected, result);
+    }
 }
