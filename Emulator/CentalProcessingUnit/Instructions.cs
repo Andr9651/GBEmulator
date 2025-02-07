@@ -1,49 +1,67 @@
+using System.IO.Pipelines;
+
 namespace GBemulator.CentralProcessingUnit;
 
 public partial class CPU
 {
+    private bool CheckHalfCarryAddition(byte value1, byte value2, bool CarryBit = false)
+    {
+        value1 &= 0xF;
+        value2 &= 0xF;
+        int result = value1 + value2 + (CarryBit ? 1 : 0);
+
+        return result > 0xF;
+    }
+
+    private bool CheckHalfCarryAddition(ushort value1, ushort value2, bool CarryBit = false)
+    {
+        value1 &= 0xFFF;
+        value2 &= 0xFFf;
+        int result = value1 + value2 + (CarryBit ? 1 : 0);
+
+        return result > 0xFFF;
+    }
+
+    private bool CheckHalfCarrySubtraction(byte value1, byte value2, bool CarryBit = false)
+    {
+        value1 &= 0xf;
+        value2 &= 0xf;
+        int result = value1 - value2 - (CarryBit ? 1 : 0);
+
+        return result < 0;
+    }
+
     private void Add16bitRegisterToHL(ushort value)
     {
-        int result = HL + BC;
-        if (result >= 0xFFFF)
-        {
-            result -= 0xFFFF;
-            CarryFlag = true;
-        }
-        else
-        {
-            CarryFlag = false;
-        }
+        int result = HL + value;
+
+        SubtractionFlag = false;
+        CarryFlag = result > 0xFFFF;
+        HalfCarryFlag = CheckHalfCarryAddition(HL, value);
 
         HL = (ushort)result;
-
-        HalfCarryFlag = HL.GetBit(3) == true; // I'm not quite sure i understand this yet
-        SubtractionFlag = false;
     }
 
     private byte Increment8bitRegister(byte value)
     {
-        value++;
-        ZeroFlag = B == 0;
-        SubtractionFlag = false;
-        HalfCarryFlag = B.GetBit(3) == true; // I'm not quite sure i understand this yet
+        byte result = (byte)(value + 1);
 
-        return value;
+        ZeroFlag = result == 0;
+        SubtractionFlag = false;
+        HalfCarryFlag = CheckHalfCarryAddition(value, 1);
+
+        return result;
     }
 
     private byte Decrement8bitRegister(byte value)
     {
-        value--;
-        ZeroFlag = B == 0;
+        byte result = (byte)(value - 1);
+
+        ZeroFlag = result == 0;
         SubtractionFlag = true;
-        HalfCarryFlag = B.GetBit(3) == true; // I'm not quite sure i understand this yet
+        HalfCarryFlag = CheckHalfCarrySubtraction(value, 1);
 
-        return value;
-    }
-
-    private byte LoadFromAddressInHL()
-    {
-        return _mmu.Read8(HL);
+        return result;
     }
 
     private void WriteToAddressInHL(byte value)
@@ -51,10 +69,93 @@ public partial class CPU
         _mmu.Write8(HL, value);
     }
 
+    private void Add8bitRegisterToAccumulator(byte value)
+    {
+        int result = Accumulator + value;
+
+        ZeroFlag = result == 0;
+        SubtractionFlag = false;
+        CarryFlag = result > 0xFF;
+        HalfCarryFlag = CheckHalfCarryAddition(Accumulator, value);
+
+        Accumulator = (byte)result;
+    }
+
+    private void Add8bitRegisterAndCarryToAccumulator(byte value)
+    {
+        int result = Accumulator + value + (CarryFlag ? 1 : 0);
+
+        ZeroFlag = result == 0;
+        SubtractionFlag = false;
+        CarryFlag = result > 0xFF;
+        HalfCarryFlag = CheckHalfCarryAddition(Accumulator, value, CarryFlag);
+
+        Accumulator = (byte)result; // numbers greater than 255 overflow when cast to byte
+    }
+
+    private void Sub8bitRegisterFromAccumulator(byte value)
+    {
+        int result = Accumulator - value;
+
+        ZeroFlag = result == 0;
+        SubtractionFlag = false;
+        CarryFlag = result < 0;
+        HalfCarryFlag = CheckHalfCarrySubtraction(Accumulator, value);
+
+        Accumulator = (byte)result; // negative numbers underflow when cast to byte
+    }
+
+    private void Sub8bitRegisterAndCarryFromAccumulator(byte value)
+    {
+
+    }
+
+    private void And8bitRegisterWithAccumulator(byte value)
+    {
+        Accumulator = (byte)(Accumulator & value);
+
+        ZeroFlag = Accumulator == 0;
+        SubtractionFlag = false;
+        CarryFlag = false;
+        HalfCarryFlag = true;
+    }
+
+    private void Xor8bitRegisterWithAccumulator(byte value)
+    {
+        Accumulator = (byte)(Accumulator ^ value);
+
+        ZeroFlag = Accumulator == 0;
+        SubtractionFlag = false;
+        CarryFlag = false;
+        HalfCarryFlag = false;
+    }
+
+    private void Or8bitRegisterWithAccumulator(byte value)
+    {
+        Accumulator = (byte)(Accumulator & value);
+
+        ZeroFlag = Accumulator == 0;
+        SubtractionFlag = false;
+        CarryFlag = false;
+        HalfCarryFlag = false;
+    }
+
+    // This instruction is equal to subtract but discards the result,
+    // and instead uses the ZeroFlag to determine if the values are equal.
+    private void Compare8bitRegisterWithAccumulator(byte value)
+    {
+        byte tempAccumulator = Accumulator;
+        Sub8bitRegisterFromAccumulator(value);
+        Accumulator = tempAccumulator;
+    }
+
     private void ExecuteInstruction(byte instructionCode)
     {
         // ProgramCounter increments have been deferred so this takes care of the increment that would have happened when reading the current instruction
         ushort programCounter = (ushort)(ProgramCounter + 1);
+
+        // Many instructions uses the byte stored in the address contained in HL
+        byte HLValue = _mmu.Read8(HL);
 
         switch (instructionCode)
         {
@@ -235,7 +336,7 @@ public partial class CPU
                 B = L;
                 break;
             case 0x46:
-                B = LoadFromAddressInHL();
+                B = HLValue;
                 break;
             case 0x47:
                 B = Accumulator;
@@ -259,7 +360,7 @@ public partial class CPU
                 C = L;
                 break;
             case 0x4E:
-                C = LoadFromAddressInHL();
+                C = HLValue;
                 break;
             case 0x4F:
                 C = Accumulator;
@@ -284,7 +385,7 @@ public partial class CPU
                 D = L;
                 break;
             case 0x56:
-                D = LoadFromAddressInHL();
+                D = HLValue;
                 break;
             case 0x57:
                 D = Accumulator;
@@ -308,7 +409,7 @@ public partial class CPU
                 E = L;
                 break;
             case 0x5E:
-                E = LoadFromAddressInHL();
+                E = HLValue;
                 break;
             case 0x5F:
                 E = Accumulator;
@@ -333,7 +434,7 @@ public partial class CPU
                 H = L;
                 break;
             case 0x66:
-                H = LoadFromAddressInHL();
+                H = HLValue;
                 break;
             case 0x67:
                 H = Accumulator;
@@ -357,7 +458,7 @@ public partial class CPU
                 L = L; // This instruction seems useless
                 break;
             case 0x6E:
-                L = LoadFromAddressInHL();
+                L = HLValue;
                 break;
             case 0x6F:
                 L = Accumulator;
@@ -406,142 +507,206 @@ public partial class CPU
                 Accumulator = L;
                 break;
             case 0x7E:
-                Accumulator = LoadFromAddressInHL();
+                Accumulator = HLValue;
                 break;
             case 0x7F:
                 Accumulator = Accumulator; // This instruction seems useless
                 break;
 
             case 0x80:
+                Add8bitRegisterToAccumulator(B);
                 break;
             case 0x81:
+                Add8bitRegisterToAccumulator(C);
                 break;
             case 0x82:
+                Add8bitRegisterToAccumulator(D);
                 break;
             case 0x83:
+                Add8bitRegisterToAccumulator(E);
                 break;
             case 0x84:
+                Add8bitRegisterToAccumulator(H);
                 break;
             case 0x85:
+                Add8bitRegisterToAccumulator(L);
                 break;
             case 0x86:
+                Add8bitRegisterToAccumulator(HLValue);
                 break;
             case 0x87:
+                Add8bitRegisterToAccumulator(Accumulator);
                 break;
             case 0x88:
+                Add8bitRegisterAndCarryToAccumulator(B);
                 break;
             case 0x89:
+                Add8bitRegisterAndCarryToAccumulator(C);
                 break;
             case 0x8A:
+                Add8bitRegisterAndCarryToAccumulator(D);
                 break;
             case 0x8B:
+                Add8bitRegisterAndCarryToAccumulator(E);
                 break;
             case 0x8C:
+                Add8bitRegisterAndCarryToAccumulator(H);
                 break;
             case 0x8D:
+                Add8bitRegisterAndCarryToAccumulator(L);
                 break;
             case 0x8E:
+                Add8bitRegisterAndCarryToAccumulator(HLValue);
                 break;
             case 0x8F:
+                Add8bitRegisterAndCarryToAccumulator(Accumulator);
                 break;
 
             case 0x90:
+                Sub8bitRegisterFromAccumulator(B);
                 break;
             case 0x91:
+                Sub8bitRegisterFromAccumulator(C);
                 break;
             case 0x92:
+                Sub8bitRegisterFromAccumulator(D);
                 break;
             case 0x93:
+                Sub8bitRegisterFromAccumulator(E);
                 break;
             case 0x94:
+                Sub8bitRegisterFromAccumulator(H);
                 break;
             case 0x95:
+                Sub8bitRegisterFromAccumulator(L);
                 break;
             case 0x96:
+                Sub8bitRegisterFromAccumulator(HLValue);
                 break;
             case 0x97:
+                Sub8bitRegisterFromAccumulator(Accumulator);
                 break;
             case 0x98:
+                Sub8bitRegisterAndCarryFromAccumulator(B);
                 break;
             case 0x99:
+                Sub8bitRegisterAndCarryFromAccumulator(C);
                 break;
             case 0x9A:
+                Sub8bitRegisterAndCarryFromAccumulator(D);
                 break;
             case 0x9B:
+                Sub8bitRegisterAndCarryFromAccumulator(E);
                 break;
             case 0x9C:
+                Sub8bitRegisterAndCarryFromAccumulator(H);
                 break;
             case 0x9D:
+                Sub8bitRegisterAndCarryFromAccumulator(L);
                 break;
             case 0x9E:
+                Sub8bitRegisterAndCarryFromAccumulator(HLValue);
                 break;
             case 0x9F:
+                Sub8bitRegisterAndCarryFromAccumulator(Accumulator);
                 break;
 
             case 0xA0:
+                And8bitRegisterWithAccumulator(B);
                 break;
             case 0xA1:
+                And8bitRegisterWithAccumulator(C);
                 break;
             case 0xA2:
+                And8bitRegisterWithAccumulator(D);
                 break;
             case 0xA3:
+                And8bitRegisterWithAccumulator(E);
                 break;
             case 0xA4:
+                And8bitRegisterWithAccumulator(H);
                 break;
             case 0xA5:
+                And8bitRegisterWithAccumulator(L);
                 break;
             case 0xA6:
+                And8bitRegisterWithAccumulator(HLValue);
                 break;
             case 0xA7:
+                And8bitRegisterWithAccumulator(Accumulator);
                 break;
             case 0xA8:
+                Xor8bitRegisterWithAccumulator(B);
                 break;
             case 0xA9:
+                Xor8bitRegisterWithAccumulator(C);
                 break;
             case 0xAA:
+                Xor8bitRegisterWithAccumulator(D);
                 break;
             case 0xAB:
+                Xor8bitRegisterWithAccumulator(E);
                 break;
             case 0xAC:
+                Xor8bitRegisterWithAccumulator(H);
                 break;
             case 0xAD:
+                Xor8bitRegisterWithAccumulator(L);
                 break;
             case 0xAE:
+                Xor8bitRegisterWithAccumulator(HLValue);
                 break;
             case 0xAF:
+                Xor8bitRegisterWithAccumulator(Accumulator);
                 break;
 
             case 0xB0:
+                Or8bitRegisterWithAccumulator(B);
                 break;
             case 0xB1:
+                Or8bitRegisterWithAccumulator(C);
                 break;
             case 0xB2:
+                Or8bitRegisterWithAccumulator(D);
                 break;
             case 0xB3:
+                Or8bitRegisterWithAccumulator(E);
                 break;
             case 0xB4:
+                Or8bitRegisterWithAccumulator(H);
                 break;
             case 0xB5:
+                Or8bitRegisterWithAccumulator(L);
                 break;
             case 0xB6:
+                Or8bitRegisterWithAccumulator(HLValue);
                 break;
             case 0xB7:
+                Or8bitRegisterWithAccumulator(Accumulator);
                 break;
             case 0xB8:
+                Compare8bitRegisterWithAccumulator(B);
                 break;
             case 0xB9:
+                Compare8bitRegisterWithAccumulator(C);
                 break;
             case 0xBA:
+                Compare8bitRegisterWithAccumulator(D);
                 break;
             case 0xBB:
+                Compare8bitRegisterWithAccumulator(E);
                 break;
             case 0xBC:
+                Compare8bitRegisterWithAccumulator(H);
                 break;
             case 0xBD:
+                Compare8bitRegisterWithAccumulator(L);
                 break;
             case 0xBE:
+                Compare8bitRegisterWithAccumulator(HLValue);
                 break;
             case 0xBF:
+                Compare8bitRegisterWithAccumulator(Accumulator);
                 break;
 
             case 0xC0:
