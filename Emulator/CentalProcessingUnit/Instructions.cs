@@ -140,6 +140,50 @@ public partial class CPU
         HalfCarryFlag = false;
     }
 
+    private byte RotateByteLeft(byte value)
+    {
+        byte result = Accumulator.RotateByteLeft();
+
+        ZeroFlag = false;
+        SubtractionFlag = false;
+        HalfCarryFlag = false;
+        CarryFlag = result.GetBit(0); // old bit 7, now at bit 0
+
+        return result;
+    }
+
+    private byte RotateByteLeftThroughCarry(byte value)
+    {
+        bool oldCarry = CarryFlag;
+
+        byte result = RotateByteLeft(value);
+        result.SetBit(0, oldCarry);
+
+        return result;
+    }
+
+    private byte RotateByteRight(byte value)
+    {
+        byte result = Accumulator.RotateByteRight();
+
+        ZeroFlag = false;
+        SubtractionFlag = false;
+        HalfCarryFlag = false;
+        CarryFlag = result.GetBit(7); // old bit 0, now at bit 7
+
+        return result;
+    }
+
+    private byte RotateByteRightThroughCarry(byte value)
+    {
+        bool oldCarry = CarryFlag;
+
+        byte result = RotateByteRight(value);
+        result.SetBit(7, oldCarry);
+
+        return result;
+    }
+
     // This instruction is equal to subtract but discards the result,
     // and instead uses the ZeroFlag to determine if the values are equal.
     private void Compare8bitRegisterWithAccumulator(byte value)
@@ -181,11 +225,7 @@ public partial class CPU
                 B = _mmu.Read8(programCounter);
                 break;
             case 0x07:
-                Accumulator = Accumulator.RotateByteLeft();
-                ZeroFlag = false;
-                SubtractionFlag = false;
-                HalfCarryFlag = false;
-                CarryFlag = Accumulator.GetBit(0); // old bit 7, now at bit 0
+                Accumulator = RotateByteLeft(Accumulator);
                 break;
             case 0x08:
                 ushort address = _mmu.Read16(programCounter);
@@ -210,45 +250,56 @@ public partial class CPU
                 C = _mmu.Read8(programCounter);
                 break;
             case 0x0F:
-                Accumulator = Accumulator.RotateByteRight();
-                ZeroFlag = false;
-                SubtractionFlag = false;
-                HalfCarryFlag = false;
-                CarryFlag = Accumulator.GetBit(7); // old bit 0, now at bit 7
+                Accumulator = RotateByteRight(Accumulator);
                 break;
 
             case 0x10:
                 _running = false;
                 break;
             case 0x11:
+                DE = _mmu.Read16(programCounter);
                 break;
             case 0x12:
+                _mmu.Write8(DE, Accumulator);
                 break;
             case 0x13:
+                DE++;
                 break;
             case 0x14:
+                D = Increment8bitRegister(D);
                 break;
             case 0x15:
+                D = Decrement8bitRegister(D);
                 break;
             case 0x16:
+                D = _mmu.Read8(programCounter);
                 break;
             case 0x17:
+                Accumulator = RotateByteLeftThroughCarry(Accumulator);
                 break;
             case 0x18:
+                ProgramCounter = (ushort)(programCounter + (sbyte)_mmu.Read8(programCounter));
                 break;
             case 0x19:
+                Add16bitRegisterToHL(DE);
                 break;
             case 0x1A:
+                Accumulator = _mmu.Read8(DE);
                 break;
             case 0x1B:
+                DE--;
                 break;
             case 0x1C:
+                E = Increment8bitRegister(E);
                 break;
             case 0x1D:
+                E = Decrement8bitRegister(E);
                 break;
             case 0x1E:
+                E = _mmu.Read8(programCounter);
                 break;
             case 0x1F:
+                Accumulator = RotateByteRightThroughCarry(Accumulator);
                 break;
 
             case 0x20:
