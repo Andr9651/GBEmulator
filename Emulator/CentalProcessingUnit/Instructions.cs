@@ -140,11 +140,11 @@ public partial class CPU
         HalfCarryFlag = false;
     }
 
-    private byte RotateByteLeft(byte value)
+    private byte RotateByteLeft(byte value, bool checkZeroFlag)
     {
         byte result = Accumulator.RotateByteLeft();
 
-        ZeroFlag = false;
+        ZeroFlag = checkZeroFlag == true && result == 0;
         SubtractionFlag = false;
         HalfCarryFlag = false;
         CarryFlag = result.GetBit(0); // old bit 7, now at bit 0
@@ -152,21 +152,21 @@ public partial class CPU
         return result;
     }
 
-    private byte RotateByteLeftThroughCarry(byte value)
+    private byte RotateByteLeftThroughCarry(byte value, bool checkZeroFlag)
     {
         bool oldCarry = CarryFlag;
 
-        byte result = RotateByteLeft(value);
+        byte result = RotateByteLeft(value, checkZeroFlag);
         result = result.SetBit(0, oldCarry);
 
         return result;
     }
 
-    private byte RotateByteRight(byte value)
+    private byte RotateByteRight(byte value, bool checkZeroFlag)
     {
         byte result = Accumulator.RotateByteRight();
 
-        ZeroFlag = false;
+        ZeroFlag = checkZeroFlag == true && result == 0;
         SubtractionFlag = false;
         HalfCarryFlag = false;
         CarryFlag = result.GetBit(7); // old bit 0, now at bit 7
@@ -174,11 +174,11 @@ public partial class CPU
         return result;
     }
 
-    private byte RotateByteRightThroughCarry(byte value)
+    private byte RotateByteRightThroughCarry(byte value, bool checkZeroFlag)
     {
         bool oldCarry = CarryFlag;
 
-        byte result = RotateByteRight(value);
+        byte result = RotateByteRight(value, checkZeroFlag);
         result = result.SetBit(7, oldCarry);
 
         return result;
@@ -235,7 +235,7 @@ public partial class CPU
                 B = next8Bits;
                 break;
             case 0x07:
-                Accumulator = RotateByteLeft(Accumulator);
+                Accumulator = RotateByteLeft(Accumulator, false);
                 break;
             case 0x08:
                 _mmu.Write16(next16Bits, StackPointer);
@@ -259,7 +259,7 @@ public partial class CPU
                 C = next8Bits;
                 break;
             case 0x0F:
-                Accumulator = RotateByteRight(Accumulator);
+                Accumulator = RotateByteRight(Accumulator, false);
                 break;
 
             case 0x10:
@@ -284,7 +284,7 @@ public partial class CPU
                 D = next8Bits;
                 break;
             case 0x17:
-                Accumulator = RotateByteLeftThroughCarry(Accumulator);
+                Accumulator = RotateByteLeftThroughCarry(Accumulator, false);
                 break;
             case 0x18:
                 JumpRelative(programCounter);
@@ -308,7 +308,7 @@ public partial class CPU
                 E = next8Bits;
                 break;
             case 0x1F:
-                Accumulator = RotateByteRightThroughCarry(Accumulator);
+                Accumulator = RotateByteRightThroughCarry(Accumulator, false);
                 break;
 
             case 0x20:
@@ -964,6 +964,119 @@ public partial class CPU
         }
     }
 
+    private byte ShiftByteLeft(byte value)
+    {
+        bool oldBit7 = value.GetBit(7);
+        value <<= 1;
+
+        ZeroFlag = value == 0;
+        SubtractionFlag = false;
+        HalfCarryFlag = false;
+        CarryFlag = oldBit7;
+
+        return value;
+    }
+
+    private byte ShiftByteRight(byte value)
+    {
+        bool oldBit0 = value.GetBit(0);
+        value >>= 1;
+
+        ZeroFlag = value == 0;
+        SubtractionFlag = false;
+        HalfCarryFlag = false;
+        CarryFlag = oldBit0;
+
+        return value;
+    }
+
+    private byte SwapNibbles(byte value)
+    {
+        byte bottomNibble = (byte)(value & 0x0F);
+        bottomNibble <<= 4;
+        value >>= 4;
+        value += bottomNibble;
+
+        ZeroFlag = value == 0;
+        SubtractionFlag = false;
+        HalfCarryFlag = false;
+        CarryFlag = false;
+
+        return value;
+    }
+
+    private byte ShiftByteRightArithmically(byte value)
+    {
+        bool oldBit7 = value.GetBit(7);
+        bool oldBit0 = value.GetBit(0);
+        value >>= 1;
+        value = value.SetBit(7, oldBit7);
+
+        ZeroFlag = value == 0;
+        SubtractionFlag = false;
+        HalfCarryFlag = false;
+        CarryFlag = oldBit0;
+
+        return value;
+    }
+
+    private void CheckBit(byte value, byte place)
+    {
+        ZeroFlag = value.GetBit(place) == false;
+        SubtractionFlag = false;
+        HalfCarryFlag = true;
+    }
+
+    // The CB instructions were very repetitive and were therefor not made by hand but instead by this: 
+    /*
+    for (int i = 0; i <= 0xFF; i++)
+    {
+        string register = (i % 8) switch
+        {
+            0 => "B",
+            1 => "C",
+            2 => "D",
+            3 => "E",
+            4 => "H",
+            5 => "L",
+            6 => "HLValue",
+            7 => "Accumulator",
+            _ => "ERROR"
+        };
+
+        string instruction = i switch
+        {
+            <= 0x07 => $"{register} = RotateByteLeft({register}, true);",
+            <= 0x0F => $"{register} = RotateByteRight({register}, true);",
+            <= 0x17 => $"{register} = RotateByteLeftThroughCarry({register}, true);",
+            <= 0x1F => $"{register} = RotateByteRightThroughCarry({register}, true);",
+            <= 0x27 => $"{register} = ShiftByteLeft({register});",
+            <= 0x2F => $"{register} = ShiftByteRightArithmically({register});",
+            <= 0x37 => $"{register} = SwapNibbles({register});",
+            <= 0x3F => $"{register} = ShiftByteRight({register});",
+            <= 0x7F => $"CheckBit({register}, {(i / 8) % 8});",
+            <= 0xBF => $"{register} = {register}.SetBit({(i / 8) % 8}, false);",
+            <= 0xFF => $"{register} = {register}.SetBit({(i / 8) % 8}, true);",
+            _ => "",
+        };
+
+        Console.WriteLine($"case 0x{i:X2}: ");
+        Console.WriteLine(instruction);
+
+        if (register == "HLValue")
+        {
+            Console.WriteLine("_mmu.Write8(HL, HLValue);");
+        }
+
+        Console.WriteLine("break;");
+
+        if (i % 8 == 7)
+        {
+            Console.WriteLine();
+        }
+    }
+    */
+
     private void ExecuteCBInstruction(byte instructionCode)
     {
         // Many instructions uses the byte stored on the address contained in HL
@@ -972,547 +1085,835 @@ public partial class CPU
         switch (instructionCode)
         {
             case 0x00:
+                B = RotateByteLeft(B, true);
                 break;
             case 0x01:
+                C = RotateByteLeft(C, true);
                 break;
             case 0x02:
+                D = RotateByteLeft(D, true);
                 break;
             case 0x03:
+                E = RotateByteLeft(E, true);
                 break;
             case 0x04:
+                H = RotateByteLeft(H, true);
                 break;
             case 0x05:
+                L = RotateByteLeft(L, true);
                 break;
             case 0x06:
+                HLValue = RotateByteLeft(HLValue, true);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x07:
+                Accumulator = RotateByteLeft(Accumulator, true);
                 break;
 
             case 0x08:
+                B = RotateByteRight(B, true);
                 break;
             case 0x09:
+                C = RotateByteRight(C, true);
                 break;
             case 0x0A:
+                D = RotateByteRight(D, true);
                 break;
             case 0x0B:
+                E = RotateByteRight(E, true);
                 break;
             case 0x0C:
+                H = RotateByteRight(H, true);
                 break;
             case 0x0D:
+                L = RotateByteRight(L, true);
                 break;
             case 0x0E:
+                HLValue = RotateByteRight(HLValue, true);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x0F:
+                Accumulator = RotateByteRight(Accumulator, true);
                 break;
 
             case 0x10:
+                B = RotateByteLeftThroughCarry(B, true);
                 break;
             case 0x11:
+                C = RotateByteLeftThroughCarry(C, true);
                 break;
             case 0x12:
+                D = RotateByteLeftThroughCarry(D, true);
                 break;
             case 0x13:
+                E = RotateByteLeftThroughCarry(E, true);
                 break;
             case 0x14:
+                H = RotateByteLeftThroughCarry(H, true);
                 break;
             case 0x15:
+                L = RotateByteLeftThroughCarry(L, true);
                 break;
             case 0x16:
+                HLValue = RotateByteLeftThroughCarry(HLValue, true);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x17:
+                Accumulator = RotateByteLeftThroughCarry(Accumulator, true);
                 break;
 
             case 0x18:
+                B = RotateByteRightThroughCarry(B, true);
                 break;
             case 0x19:
+                C = RotateByteRightThroughCarry(C, true);
                 break;
             case 0x1A:
+                D = RotateByteRightThroughCarry(D, true);
                 break;
             case 0x1B:
+                E = RotateByteRightThroughCarry(E, true);
                 break;
             case 0x1C:
+                H = RotateByteRightThroughCarry(H, true);
                 break;
             case 0x1D:
+                L = RotateByteRightThroughCarry(L, true);
                 break;
             case 0x1E:
+                HLValue = RotateByteRightThroughCarry(HLValue, true);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x1F:
+                Accumulator = RotateByteRightThroughCarry(Accumulator, true);
                 break;
 
             case 0x20:
+                B = ShiftByteLeft(B);
                 break;
             case 0x21:
+                C = ShiftByteLeft(C);
                 break;
             case 0x22:
+                D = ShiftByteLeft(D);
                 break;
             case 0x23:
+                E = ShiftByteLeft(E);
                 break;
             case 0x24:
+                H = ShiftByteLeft(H);
                 break;
             case 0x25:
+                L = ShiftByteLeft(L);
                 break;
             case 0x26:
+                HLValue = ShiftByteLeft(HLValue);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x27:
+                Accumulator = ShiftByteLeft(Accumulator);
                 break;
 
             case 0x28:
+                B = ShiftByteRightArithmically(B);
                 break;
             case 0x29:
+                C = ShiftByteRightArithmically(C);
                 break;
             case 0x2A:
+                D = ShiftByteRightArithmically(D);
                 break;
             case 0x2B:
+                E = ShiftByteRightArithmically(E);
                 break;
             case 0x2C:
+                H = ShiftByteRightArithmically(H);
                 break;
             case 0x2D:
+                L = ShiftByteRightArithmically(L);
                 break;
             case 0x2E:
+                HLValue = ShiftByteRightArithmically(HLValue);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x2F:
+                Accumulator = ShiftByteRightArithmically(Accumulator);
                 break;
 
             case 0x30:
+                B = SwapNibbles(B);
                 break;
             case 0x31:
+                C = SwapNibbles(C);
                 break;
             case 0x32:
+                D = SwapNibbles(D);
                 break;
             case 0x33:
+                E = SwapNibbles(E);
                 break;
             case 0x34:
+                H = SwapNibbles(H);
                 break;
             case 0x35:
+                L = SwapNibbles(L);
                 break;
             case 0x36:
+                HLValue = SwapNibbles(HLValue);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x37:
+                Accumulator = SwapNibbles(Accumulator);
                 break;
 
             case 0x38:
+                B = ShiftByteRight(B);
                 break;
             case 0x39:
+                C = ShiftByteRight(C);
                 break;
             case 0x3A:
+                D = ShiftByteRight(D);
                 break;
             case 0x3B:
+                E = ShiftByteRight(E);
                 break;
             case 0x3C:
+                H = ShiftByteRight(H);
                 break;
             case 0x3D:
+                L = ShiftByteRight(L);
                 break;
             case 0x3E:
+                HLValue = ShiftByteRight(HLValue);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x3F:
+                Accumulator = ShiftByteRight(Accumulator);
                 break;
 
             case 0x40:
+                CheckBit(B, 0);
                 break;
             case 0x41:
+                CheckBit(C, 0);
                 break;
             case 0x42:
+                CheckBit(D, 0);
                 break;
             case 0x43:
+                CheckBit(E, 0);
                 break;
             case 0x44:
+                CheckBit(H, 0);
                 break;
             case 0x45:
+                CheckBit(L, 0);
                 break;
             case 0x46:
+                CheckBit(HLValue, 0);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x47:
+                CheckBit(Accumulator, 0);
                 break;
 
             case 0x48:
+                CheckBit(B, 1);
                 break;
             case 0x49:
+                CheckBit(C, 1);
                 break;
             case 0x4A:
+                CheckBit(D, 1);
                 break;
             case 0x4B:
+                CheckBit(E, 1);
                 break;
             case 0x4C:
+                CheckBit(H, 1);
                 break;
             case 0x4D:
+                CheckBit(L, 1);
                 break;
             case 0x4E:
+                CheckBit(HLValue, 1);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x4F:
+                CheckBit(Accumulator, 1);
                 break;
 
             case 0x50:
+                CheckBit(B, 2);
                 break;
             case 0x51:
+                CheckBit(C, 2);
                 break;
             case 0x52:
+                CheckBit(D, 2);
                 break;
             case 0x53:
+                CheckBit(E, 2);
                 break;
             case 0x54:
+                CheckBit(H, 2);
                 break;
             case 0x55:
+                CheckBit(L, 2);
                 break;
             case 0x56:
+                CheckBit(HLValue, 2);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x57:
+                CheckBit(Accumulator, 2);
                 break;
 
             case 0x58:
+                CheckBit(B, 3);
                 break;
             case 0x59:
+                CheckBit(C, 3);
                 break;
             case 0x5A:
+                CheckBit(D, 3);
                 break;
             case 0x5B:
+                CheckBit(E, 3);
                 break;
             case 0x5C:
+                CheckBit(H, 3);
                 break;
             case 0x5D:
+                CheckBit(L, 3);
                 break;
             case 0x5E:
+                CheckBit(HLValue, 3);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x5F:
+                CheckBit(Accumulator, 3);
                 break;
 
             case 0x60:
+                CheckBit(B, 4);
                 break;
             case 0x61:
+                CheckBit(C, 4);
                 break;
             case 0x62:
+                CheckBit(D, 4);
                 break;
             case 0x63:
+                CheckBit(E, 4);
                 break;
             case 0x64:
+                CheckBit(H, 4);
                 break;
             case 0x65:
+                CheckBit(L, 4);
                 break;
             case 0x66:
+                CheckBit(HLValue, 4);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x67:
+                CheckBit(Accumulator, 4);
                 break;
 
             case 0x68:
+                CheckBit(B, 5);
                 break;
             case 0x69:
+                CheckBit(C, 5);
                 break;
             case 0x6A:
+                CheckBit(D, 5);
                 break;
             case 0x6B:
+                CheckBit(E, 5);
                 break;
             case 0x6C:
+                CheckBit(H, 5);
                 break;
             case 0x6D:
+                CheckBit(L, 5);
                 break;
             case 0x6E:
+                CheckBit(HLValue, 5);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x6F:
+                CheckBit(Accumulator, 5);
                 break;
 
             case 0x70:
+                CheckBit(B, 6);
                 break;
             case 0x71:
+                CheckBit(C, 6);
                 break;
             case 0x72:
+                CheckBit(D, 6);
                 break;
             case 0x73:
+                CheckBit(E, 6);
                 break;
             case 0x74:
+                CheckBit(H, 6);
                 break;
             case 0x75:
+                CheckBit(L, 6);
                 break;
             case 0x76:
+                CheckBit(HLValue, 6);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x77:
+                CheckBit(Accumulator, 6);
                 break;
 
             case 0x78:
+                CheckBit(B, 7);
                 break;
             case 0x79:
+                CheckBit(C, 7);
                 break;
             case 0x7A:
+                CheckBit(D, 7);
                 break;
             case 0x7B:
+                CheckBit(E, 7);
                 break;
             case 0x7C:
+                CheckBit(H, 7);
                 break;
             case 0x7D:
+                CheckBit(L, 7);
                 break;
             case 0x7E:
+                CheckBit(HLValue, 7);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x7F:
+                CheckBit(Accumulator, 7);
                 break;
 
             case 0x80:
+                B = B.SetBit(0, false);
                 break;
             case 0x81:
+                C = C.SetBit(0, false);
                 break;
             case 0x82:
+                D = D.SetBit(0, false);
                 break;
             case 0x83:
+                E = E.SetBit(0, false);
                 break;
             case 0x84:
+                H = H.SetBit(0, false);
                 break;
             case 0x85:
+                L = L.SetBit(0, false);
                 break;
             case 0x86:
+                HLValue = HLValue.SetBit(0, false);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x87:
+                Accumulator = Accumulator.SetBit(0, false);
                 break;
 
             case 0x88:
+                B = B.SetBit(1, false);
                 break;
             case 0x89:
+                C = C.SetBit(1, false);
                 break;
             case 0x8A:
+                D = D.SetBit(1, false);
                 break;
             case 0x8B:
+                E = E.SetBit(1, false);
                 break;
             case 0x8C:
+                H = H.SetBit(1, false);
                 break;
             case 0x8D:
+                L = L.SetBit(1, false);
                 break;
             case 0x8E:
+                HLValue = HLValue.SetBit(1, false);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x8F:
+                Accumulator = Accumulator.SetBit(1, false);
                 break;
 
             case 0x90:
+                B = B.SetBit(2, false);
                 break;
             case 0x91:
+                C = C.SetBit(2, false);
                 break;
             case 0x92:
+                D = D.SetBit(2, false);
                 break;
             case 0x93:
+                E = E.SetBit(2, false);
                 break;
             case 0x94:
+                H = H.SetBit(2, false);
                 break;
             case 0x95:
+                L = L.SetBit(2, false);
                 break;
             case 0x96:
+                HLValue = HLValue.SetBit(2, false);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x97:
+                Accumulator = Accumulator.SetBit(2, false);
                 break;
 
             case 0x98:
+                B = B.SetBit(3, false);
                 break;
             case 0x99:
+                C = C.SetBit(3, false);
                 break;
             case 0x9A:
+                D = D.SetBit(3, false);
                 break;
             case 0x9B:
+                E = E.SetBit(3, false);
                 break;
             case 0x9C:
+                H = H.SetBit(3, false);
                 break;
             case 0x9D:
+                L = L.SetBit(3, false);
                 break;
             case 0x9E:
+                HLValue = HLValue.SetBit(3, false);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x9F:
+                Accumulator = Accumulator.SetBit(3, false);
                 break;
 
             case 0xA0:
+                B = B.SetBit(4, false);
                 break;
             case 0xA1:
+                C = C.SetBit(4, false);
                 break;
             case 0xA2:
+                D = D.SetBit(4, false);
                 break;
             case 0xA3:
+                E = E.SetBit(4, false);
                 break;
             case 0xA4:
+                H = H.SetBit(4, false);
                 break;
             case 0xA5:
+                L = L.SetBit(4, false);
                 break;
             case 0xA6:
+                HLValue = HLValue.SetBit(4, false);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0xA7:
+                Accumulator = Accumulator.SetBit(4, false);
                 break;
 
             case 0xA8:
+                B = B.SetBit(5, false);
                 break;
             case 0xA9:
+                C = C.SetBit(5, false);
                 break;
             case 0xAA:
+                D = D.SetBit(5, false);
                 break;
             case 0xAB:
+                E = E.SetBit(5, false);
                 break;
             case 0xAC:
+                H = H.SetBit(5, false);
                 break;
             case 0xAD:
+                L = L.SetBit(5, false);
                 break;
             case 0xAE:
+                HLValue = HLValue.SetBit(5, false);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0xAF:
+                Accumulator = Accumulator.SetBit(5, false);
                 break;
 
             case 0xB0:
+                B = B.SetBit(6, false);
                 break;
             case 0xB1:
+                C = C.SetBit(6, false);
                 break;
             case 0xB2:
+                D = D.SetBit(6, false);
                 break;
             case 0xB3:
+                E = E.SetBit(6, false);
                 break;
             case 0xB4:
+                H = H.SetBit(6, false);
                 break;
             case 0xB5:
+                L = L.SetBit(6, false);
                 break;
             case 0xB6:
+                HLValue = HLValue.SetBit(6, false);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0xB7:
+                Accumulator = Accumulator.SetBit(6, false);
                 break;
 
             case 0xB8:
+                B = B.SetBit(7, false);
                 break;
             case 0xB9:
+                C = C.SetBit(7, false);
                 break;
             case 0xBA:
+                D = D.SetBit(7, false);
                 break;
             case 0xBB:
+                E = E.SetBit(7, false);
                 break;
             case 0xBC:
+                H = H.SetBit(7, false);
                 break;
             case 0xBD:
+                L = L.SetBit(7, false);
                 break;
             case 0xBE:
+                HLValue = HLValue.SetBit(7, false);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0xBF:
+                Accumulator = Accumulator.SetBit(7, false);
                 break;
 
             case 0xC0:
+                B = B.SetBit(0, true);
                 break;
             case 0xC1:
+                C = C.SetBit(0, true);
                 break;
             case 0xC2:
+                D = D.SetBit(0, true);
                 break;
             case 0xC3:
+                E = E.SetBit(0, true);
                 break;
             case 0xC4:
+                H = H.SetBit(0, true);
                 break;
             case 0xC5:
+                L = L.SetBit(0, true);
                 break;
             case 0xC6:
+                HLValue = HLValue.SetBit(0, true);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0xC7:
+                Accumulator = Accumulator.SetBit(0, true);
                 break;
 
             case 0xC8:
+                B = B.SetBit(1, true);
                 break;
             case 0xC9:
+                C = C.SetBit(1, true);
                 break;
             case 0xCA:
+                D = D.SetBit(1, true);
                 break;
             case 0xCB:
+                E = E.SetBit(1, true);
                 break;
             case 0xCC:
+                H = H.SetBit(1, true);
                 break;
             case 0xCD:
+                L = L.SetBit(1, true);
                 break;
             case 0xCE:
+                HLValue = HLValue.SetBit(1, true);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0xCF:
+                Accumulator = Accumulator.SetBit(1, true);
                 break;
 
             case 0xD0:
+                B = B.SetBit(2, true);
                 break;
             case 0xD1:
+                C = C.SetBit(2, true);
                 break;
             case 0xD2:
+                D = D.SetBit(2, true);
                 break;
             case 0xD3:
+                E = E.SetBit(2, true);
                 break;
             case 0xD4:
+                H = H.SetBit(2, true);
                 break;
             case 0xD5:
+                L = L.SetBit(2, true);
                 break;
             case 0xD6:
+                HLValue = HLValue.SetBit(2, true);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0xD7:
+                Accumulator = Accumulator.SetBit(2, true);
                 break;
 
             case 0xD8:
+                B = B.SetBit(3, true);
                 break;
             case 0xD9:
+                C = C.SetBit(3, true);
                 break;
             case 0xDA:
+                D = D.SetBit(3, true);
                 break;
             case 0xDB:
+                E = E.SetBit(3, true);
                 break;
             case 0xDC:
+                H = H.SetBit(3, true);
                 break;
             case 0xDD:
+                L = L.SetBit(3, true);
                 break;
             case 0xDE:
+                HLValue = HLValue.SetBit(3, true);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0xDF:
+                Accumulator = Accumulator.SetBit(3, true);
                 break;
 
             case 0xE0:
+                B = B.SetBit(4, true);
                 break;
             case 0xE1:
+                C = C.SetBit(4, true);
                 break;
             case 0xE2:
+                D = D.SetBit(4, true);
                 break;
             case 0xE3:
+                E = E.SetBit(4, true);
                 break;
             case 0xE4:
+                H = H.SetBit(4, true);
                 break;
             case 0xE5:
+                L = L.SetBit(4, true);
                 break;
             case 0xE6:
+                HLValue = HLValue.SetBit(4, true);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0xE7:
+                Accumulator = Accumulator.SetBit(4, true);
                 break;
 
             case 0xE8:
+                B = B.SetBit(5, true);
                 break;
             case 0xE9:
+                C = C.SetBit(5, true);
                 break;
             case 0xEA:
+                D = D.SetBit(5, true);
                 break;
             case 0xEB:
+                E = E.SetBit(5, true);
                 break;
             case 0xEC:
+                H = H.SetBit(5, true);
                 break;
             case 0xED:
+                L = L.SetBit(5, true);
                 break;
             case 0xEE:
+                HLValue = HLValue.SetBit(5, true);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0xEF:
+                Accumulator = Accumulator.SetBit(5, true);
                 break;
 
             case 0xF0:
+                B = B.SetBit(6, true);
                 break;
             case 0xF1:
+                C = C.SetBit(6, true);
                 break;
             case 0xF2:
+                D = D.SetBit(6, true);
                 break;
             case 0xF3:
+                E = E.SetBit(6, true);
                 break;
             case 0xF4:
+                H = H.SetBit(6, true);
                 break;
             case 0xF5:
+                L = L.SetBit(6, true);
                 break;
             case 0xF6:
+                HLValue = HLValue.SetBit(6, true);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0xF7:
+                Accumulator = Accumulator.SetBit(6, true);
                 break;
 
             case 0xF8:
+                B = B.SetBit(7, true);
                 break;
             case 0xF9:
+                C = C.SetBit(7, true);
                 break;
             case 0xFA:
+                D = D.SetBit(7, true);
                 break;
             case 0xFB:
+                E = E.SetBit(7, true);
                 break;
             case 0xFC:
+                H = H.SetBit(7, true);
                 break;
             case 0xFD:
+                L = L.SetBit(7, true);
                 break;
             case 0xFE:
+                HLValue = HLValue.SetBit(7, true);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0xFF:
+                Accumulator = Accumulator.SetBit(7, true);
                 break;
         }
     }
