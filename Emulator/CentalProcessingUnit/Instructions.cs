@@ -204,7 +204,11 @@ public partial class CPU
         // ProgramCounter increments have been deferred so this takes care of the increment that would have happened when reading the current instruction
         ushort programCounter = (ushort)(ProgramCounter + 1);
 
-        // Many instructions uses the byte stored in the address contained in HL
+        // Next 8 and 16 bits after the instruction. Used by some instructions
+        byte next8Bits = _mmu.Read8(programCounter);
+        ushort next16Bits = _mmu.Read16(programCounter);
+
+        // Many instructions uses the byte stored on the address contained in HL
         byte HLValue = _mmu.Read8(HL);
 
         switch (instructionCode)
@@ -213,7 +217,7 @@ public partial class CPU
                 // No Operation
                 break;
             case 0x01:
-                BC = _mmu.Read16(programCounter);
+                BC = next16Bits;
                 break;
             case 0x02:
                 _mmu.Write8(BC, Accumulator);
@@ -228,14 +232,13 @@ public partial class CPU
                 B = Decrement8bitRegister(B);
                 break;
             case 0x06:
-                B = _mmu.Read8(programCounter);
+                B = next8Bits;
                 break;
             case 0x07:
                 Accumulator = RotateByteLeft(Accumulator);
                 break;
             case 0x08:
-                ushort address = _mmu.Read16(programCounter);
-                _mmu.Write16(address, StackPointer);
+                _mmu.Write16(next16Bits, StackPointer);
                 break;
             case 0x09:
                 Add16bitRegisterToHL(BC);
@@ -253,7 +256,7 @@ public partial class CPU
                 C = Decrement8bitRegister(C);
                 break;
             case 0x0E:
-                C = _mmu.Read8(programCounter);
+                C = next8Bits;
                 break;
             case 0x0F:
                 Accumulator = RotateByteRight(Accumulator);
@@ -263,7 +266,7 @@ public partial class CPU
                 _running = false;
                 break;
             case 0x11:
-                DE = _mmu.Read16(programCounter);
+                DE = next16Bits;
                 break;
             case 0x12:
                 _mmu.Write8(DE, Accumulator);
@@ -278,7 +281,7 @@ public partial class CPU
                 D = Decrement8bitRegister(D);
                 break;
             case 0x16:
-                D = _mmu.Read8(programCounter);
+                D = next8Bits;
                 break;
             case 0x17:
                 Accumulator = RotateByteLeftThroughCarry(Accumulator);
@@ -302,7 +305,7 @@ public partial class CPU
                 E = Decrement8bitRegister(E);
                 break;
             case 0x1E:
-                E = _mmu.Read8(programCounter);
+                E = next8Bits;
                 break;
             case 0x1F:
                 Accumulator = RotateByteRightThroughCarry(Accumulator);
@@ -315,7 +318,7 @@ public partial class CPU
                 }
                 break;
             case 0x21:
-                HL = _mmu.Read16(programCounter);
+                HL = next16Bits;
                 break;
             case 0x22:
                 _mmu.Write8(HL, Accumulator);
@@ -331,7 +334,7 @@ public partial class CPU
                 H = Decrement8bitRegister(H);
                 break;
             case 0x26:
-                H = _mmu.Read8(programCounter);
+                H = next8Bits;
                 break;
             case 0x27:
                 throw new NotImplementedException("DAA not implemented");
@@ -346,7 +349,7 @@ public partial class CPU
                 Add16bitRegisterToHL(HL);
                 break;
             case 0x2A:
-                Accumulator = _mmu.Read8(HL);
+                Accumulator = HLValue;
                 HL++;
                 break;
             case 0x2B:
@@ -359,7 +362,7 @@ public partial class CPU
                 L = Decrement8bitRegister(L);
                 break;
             case 0x2E:
-                L = _mmu.Read8(programCounter);
+                L = next8Bits;
                 break;
             case 0x2F:
                 Accumulator = (byte)~Accumulator;
@@ -375,28 +378,25 @@ public partial class CPU
                 }
                 break;
             case 0x31:
-                StackPointer = _mmu.Read16(programCounter);
+                StackPointer = next16Bits;
                 break;
             case 0x32:
-                Accumulator = _mmu.Read8(HL);
+                Accumulator = HLValue;
                 HL--;
                 break;
             case 0x33:
                 StackPointer++;
                 break;
             case 0x34:
-                byte value = _mmu.Read8(HL);
-                value = Increment8bitRegister(value);
-                _mmu.Write8(HL, value);
+                HLValue = Increment8bitRegister(HLValue);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x35:
-                byte value2 = _mmu.Read8(HL);
-                value = Decrement8bitRegister(value2);
-                _mmu.Write8(HL, value);
+                HLValue = Decrement8bitRegister(HLValue);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x36:
-                byte value3 = _mmu.Read8(HL);
-                _mmu.Write8(HL, value3);
+                _mmu.Write8(HL, HLValue);
                 break;
             case 0x37:
                 SubtractionFlag = false;
@@ -413,7 +413,7 @@ public partial class CPU
                 Add16bitRegisterToHL(StackPointer);
                 break;
             case 0x3A:
-                Accumulator = _mmu.Read8(HL);
+                Accumulator = HLValue;
                 HL--;
                 break;
             case 0x3B:
@@ -426,7 +426,7 @@ public partial class CPU
                 Accumulator = Decrement8bitRegister(Accumulator);
                 break;
             case 0x3E:
-                Accumulator = _mmu.Read8(programCounter);
+                Accumulator = next8Bits;
                 break;
             case 0x3F:
                 SubtractionFlag = false;
@@ -962,5 +962,4 @@ public partial class CPU
                 throw new Exception($"Invalid opcode: 0x{instructionCode:X2}");
         }
     }
-
 }
