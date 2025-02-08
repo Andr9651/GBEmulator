@@ -396,7 +396,7 @@ public partial class CPU
                 _mmu.Write8(HL, HLValue);
                 break;
             case 0x36:
-                _mmu.Write8(HL, HLValue);
+                _mmu.Write8(HL, next8Bits);
                 break;
             case 0x37:
                 SubtractionFlag = false;
