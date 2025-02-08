@@ -193,6 +193,12 @@ public partial class CPU
         Accumulator = tempAccumulator;
     }
 
+    private void JumpRelative(ushort programCounter)
+    {
+        sbyte amount = (sbyte)_mmu.Read8(programCounter);
+        ProgramCounter = (ushort)(programCounter + amount);
+    }
+
     private void ExecuteInstruction(byte instructionCode)
     {
         // ProgramCounter increments have been deferred so this takes care of the increment that would have happened when reading the current instruction
@@ -278,7 +284,7 @@ public partial class CPU
                 Accumulator = RotateByteLeftThroughCarry(Accumulator);
                 break;
             case 0x18:
-                ProgramCounter = (ushort)(programCounter + (sbyte)_mmu.Read8(programCounter));
+                JumpRelative(programCounter);
                 break;
             case 0x19:
                 Add16bitRegisterToHL(DE);
@@ -303,69 +309,129 @@ public partial class CPU
                 break;
 
             case 0x20:
+                if (ZeroFlag == false)
+                {
+                    JumpRelative(programCounter);
+                }
                 break;
             case 0x21:
+                HL = _mmu.Read16(programCounter);
                 break;
             case 0x22:
+                _mmu.Write8(HL, Accumulator);
+                HL++;
                 break;
             case 0x23:
+                HL++;
                 break;
             case 0x24:
+                H = Increment8bitRegister(H);
                 break;
             case 0x25:
+                H = Decrement8bitRegister(H);
                 break;
             case 0x26:
+                H = _mmu.Read8(programCounter);
                 break;
             case 0x27:
+                throw new NotImplementedException("DAA not implemented");
                 break;
             case 0x28:
+                if (ZeroFlag == true)
+                {
+                    JumpRelative(programCounter);
+                }
                 break;
             case 0x29:
+                Add16bitRegisterToHL(HL);
                 break;
             case 0x2A:
+                Accumulator = _mmu.Read8(HL);
+                HL++;
                 break;
             case 0x2B:
+                HL--;
                 break;
             case 0x2C:
+                L = Increment8bitRegister(L);
                 break;
             case 0x2D:
+                L = Decrement8bitRegister(L);
                 break;
             case 0x2E:
+                L = _mmu.Read8(programCounter);
                 break;
             case 0x2F:
+                Accumulator = (byte)~Accumulator;
+
+                SubtractionFlag = true;
+                HalfCarryFlag = true;
                 break;
 
             case 0x30:
+                if (CarryFlag == false)
+                {
+                    JumpRelative(programCounter);
+                }
                 break;
             case 0x31:
+                StackPointer = _mmu.Read16(programCounter);
                 break;
             case 0x32:
+                Accumulator = _mmu.Read8(HL);
+                HL--;
                 break;
             case 0x33:
+                StackPointer++;
                 break;
             case 0x34:
+                byte value = _mmu.Read8(HL);
+                value = Increment8bitRegister(value);
+                _mmu.Write8(HL, value);
                 break;
             case 0x35:
+                byte value2 = _mmu.Read8(HL);
+                value = Decrement8bitRegister(value2);
+                _mmu.Write8(HL, value);
                 break;
             case 0x36:
+                byte value3 = _mmu.Read8(HL);
+                _mmu.Write8(HL, value3);
                 break;
             case 0x37:
+                SubtractionFlag = false;
+                HalfCarryFlag = false;
+                CarryFlag = true;
                 break;
             case 0x38:
+                if (CarryFlag == true)
+                {
+                    JumpRelative(programCounter);
+                }
                 break;
             case 0x39:
+                Add16bitRegisterToHL(StackPointer);
                 break;
             case 0x3A:
+                Accumulator = _mmu.Read8(HL);
+                HL--;
                 break;
             case 0x3B:
+                StackPointer--;
                 break;
             case 0x3C:
+                Accumulator = Increment8bitRegister(Accumulator);
                 break;
             case 0x3D:
+                Accumulator = Decrement8bitRegister(Accumulator);
                 break;
             case 0x3E:
+                Accumulator = _mmu.Read8(programCounter);
                 break;
             case 0x3F:
+                SubtractionFlag = false;
+                HalfCarryFlag = false;
+                CarryFlag = !CarryFlag;
                 break;
 
             case 0x40:
