@@ -157,7 +157,7 @@ public partial class CPU
         bool oldCarry = CarryFlag;
 
         byte result = RotateByteLeft(value);
-        result.SetBit(0, oldCarry);
+        result = result.SetBit(0, oldCarry);
 
         return result;
     }
@@ -179,7 +179,7 @@ public partial class CPU
         bool oldCarry = CarryFlag;
 
         byte result = RotateByteRight(value);
-        result.SetBit(7, oldCarry);
+        result = result.SetBit(7, oldCarry);
 
         return result;
     }
