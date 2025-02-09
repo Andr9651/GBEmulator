@@ -855,6 +855,7 @@ public partial class CPU
                 PushStack(BC);
                 break;
             case 0xC6:
+                Add8bitRegisterToAccumulator(next8Bits);
                 break;
             case 0xC7:
                 break;
@@ -872,6 +873,7 @@ public partial class CPU
             case 0xCD:
                 break;
             case 0xCE:
+                Add8bitRegisterAndCarryToAccumulator(next8Bits);
                 break;
             case 0xCF:
                 break;
@@ -891,6 +893,7 @@ public partial class CPU
                 PushStack(DE);
                 break;
             case 0xD6:
+                Sub8bitRegisterFromAccumulator(next8Bits);
                 break;
             case 0xD7:
                 break;
@@ -907,6 +910,7 @@ public partial class CPU
             case 0xDD:
                 break;
             case 0xDE:
+                Sub8bitRegisterAndCarryFromAccumulator(next8Bits);
                 break;
             case 0xDF:
                 break;
@@ -926,6 +930,7 @@ public partial class CPU
                 PushStack(HL);
                 break;
             case 0xE6:
+                And8bitRegisterWithAccumulator(next8Bits);
                 break;
             case 0xE7:
                 break;
@@ -942,6 +947,7 @@ public partial class CPU
             case 0xED:
                 break;
             case 0xEE:
+                Xor8bitRegisterWithAccumulator(next8Bits);
                 break;
             case 0xEF:
                 break;
@@ -961,6 +967,7 @@ public partial class CPU
                 PushStack(AccumulatorFlags);
                 break;
             case 0xF6:
+                Or8bitRegisterWithAccumulator(next8Bits);
                 break;
             case 0xF7:
                 break;
@@ -977,6 +984,7 @@ public partial class CPU
             case 0xFD:
                 break;
             case 0xFE:
+                Compare8bitRegisterWithAccumulator(next8Bits);
                 break;
             case 0xFF:
                 break;
