@@ -1,5 +1,3 @@
-using System.IO.Pipelines;
-
 namespace GBemulator.CentralProcessingUnit;
 
 public partial class CPU
@@ -16,7 +14,7 @@ public partial class CPU
     private bool CheckHalfCarryAddition(ushort value1, ushort value2, bool CarryBit = false)
     {
         value1 &= 0xFFF;
-        value2 &= 0xFFf;
+        value2 &= 0xFFF;
         int result = value1 + value2 + (CarryBit ? 1 : 0);
 
         return result > 0xFFF;
@@ -240,6 +238,27 @@ public partial class CPU
             ushort address = PopStack();
             ProgramCounter = address;
         }
+    }
+
+    private ushort AddSignedByteToStackPointer(byte value)
+    {
+        sbyte signedValue = (sbyte)value;
+        int result = StackPointer + signedValue;
+
+        ZeroFlag = false;
+        SubtractionFlag = false;
+        CarryFlag = result > 0xFFFF || result < 0;
+
+        if (signedValue >= 0)
+        {
+            HalfCarryFlag = CheckHalfCarryAddition((byte)StackPointer, (byte)signedValue);
+        }
+        else
+        {
+            HalfCarryFlag = CheckHalfCarrySubtraction((byte)StackPointer, (byte)-signedValue);
+        }
+
+        return (ushort)result;
     }
 
     private void ExecuteInstruction(byte instructionCode)
@@ -975,6 +994,7 @@ public partial class CPU
                 CallSubroutine(0x20, true);
                 break;
             case 0xE8:
+                StackPointer = AddSignedByteToStackPointer(next8Bits);
                 break;
             case 0xE9:
                 Jump(HL, true);
@@ -1018,8 +1038,10 @@ public partial class CPU
                 CallSubroutine(0x30, true);
                 break;
             case 0xF8:
+                HL = AddSignedByteToStackPointer(next8Bits);
                 break;
             case 0xF9:
+                StackPointer = HL;
                 break;
             case 0xFA:
                 Accumulator = _mmu.Read8(next16Bits);
