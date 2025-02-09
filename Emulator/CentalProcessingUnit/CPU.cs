@@ -9,6 +9,17 @@ public partial class CPU
     private Registers _registers;
     public Registers Registers => _registers;
 
+    private bool InterruptMasterEnable
+    {
+        get => _registers.InterruptMasterEnable;
+        set => _registers.InterruptMasterEnable = value;
+    }
+
+    private bool QueueInterruptMasterEnableSet
+    {
+        get => _registers.QueueInterruptMasterEnableSet;
+        set => _registers.QueueInterruptMasterEnableSet = value;
+    }
     private ushort StackPointer
     {
         get => _registers.StackPointer;
@@ -137,6 +148,12 @@ public partial class CPU
         while (_running == true)
         {
             byte instructionCode = _mmu.Read8(ProgramCounter);
+
+            if (QueueInterruptMasterEnableSet == true)
+            {
+                InterruptMasterEnable = true;
+            }
+
             ExecuteInstruction(instructionCode);
             IncrementProgramCounter(instructionCode);
         }

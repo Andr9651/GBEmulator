@@ -13,7 +13,7 @@ public struct Registers
     public required byte H;
     public required byte L;
     public required bool InterruptMasterEnable;
-    // The instruction to set the InterruptMasterEnable is delayed by one instruction so this is here to enable that
+    // The instruction (0xFB) to set the InterruptMasterEnable is delayed by one instruction so this is here to enable that
     public required bool QueueInterruptMasterEnableSet;
 
     public override string ToString()

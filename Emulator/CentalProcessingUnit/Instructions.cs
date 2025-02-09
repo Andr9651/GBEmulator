@@ -953,6 +953,8 @@ public partial class CPU
                 ReturnFromSubroutine(CarryFlag == true);
                 break;
             case 0xD9:
+                InterruptMasterEnable = true;
+                ReturnFromSubroutine(true);
                 break;
             case 0xDA:
                 Jump(next16Bits, CarryFlag == true);
@@ -1025,6 +1027,7 @@ public partial class CPU
                 Accumulator = _mmu.Read8((ushort)(highRAMAddress + C));
                 break;
             case 0xF3:
+                InterruptMasterEnable = false;
                 break;
             case 0xF4:
                 throw new Exception("Unused instruction");
@@ -1047,6 +1050,7 @@ public partial class CPU
                 Accumulator = _mmu.Read8(next16Bits);
                 break;
             case 0xFB:
+                QueueInterruptMasterEnableSet = true;
                 break;
             case 0xFC:
                 throw new Exception("Unused instruction");
