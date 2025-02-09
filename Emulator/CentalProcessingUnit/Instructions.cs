@@ -199,6 +199,20 @@ public partial class CPU
         ProgramCounter = (ushort)(programCounter + amount);
     }
 
+    private void PushStack(ushort value)
+    {
+        StackPointer -= 2;
+        _mmu.Write16(StackPointer, value);
+    }
+
+    private ushort PopStack()
+    {
+        ushort result = _mmu.Read16(StackPointer);
+        StackPointer += 2;
+
+        return result;
+    }
+
     private void ExecuteInstruction(byte instructionCode)
     {
         // ProgramCounter increments have been deferred so this takes care of the increment that would have happened when reading the current instruction
@@ -829,6 +843,7 @@ public partial class CPU
             case 0xC0:
                 break;
             case 0xC1:
+                BC = PopStack();
                 break;
             case 0xC2:
                 break;
@@ -837,6 +852,7 @@ public partial class CPU
             case 0xC4:
                 break;
             case 0xC5:
+                PushStack(BC);
                 break;
             case 0xC6:
                 break;
@@ -863,6 +879,7 @@ public partial class CPU
             case 0xD0:
                 break;
             case 0xD1:
+                DE = PopStack();
                 break;
             case 0xD2:
                 break;
@@ -871,6 +888,7 @@ public partial class CPU
             case 0xD4:
                 break;
             case 0xD5:
+                PushStack(DE);
                 break;
             case 0xD6:
                 break;
@@ -896,6 +914,7 @@ public partial class CPU
             case 0xE0:
                 break;
             case 0xE1:
+                HL = PopStack();
                 break;
             case 0xE2:
                 break;
@@ -904,6 +923,7 @@ public partial class CPU
             case 0xE4:
                 break;
             case 0xE5:
+                PushStack(HL);
                 break;
             case 0xE6:
                 break;
@@ -929,6 +949,7 @@ public partial class CPU
             case 0xF0:
                 break;
             case 0xF1:
+                AccumulatorFlags = PopStack();
                 break;
             case 0xF2:
                 break;
@@ -937,6 +958,7 @@ public partial class CPU
             case 0xF4:
                 break;
             case 0xF5:
+                PushStack(AccumulatorFlags);
                 break;
             case 0xF6:
                 break;

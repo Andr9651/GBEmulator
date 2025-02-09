@@ -24,9 +24,9 @@ public class MMU
         byte leastSignificant = _memory[address];
         byte mostSignificant = _memory[address + 1];
 
-        ushort value = Helpers.BytesToUshort(mostSignificant, leastSignificant);
+        ushort result = Helpers.BytesToUshort(mostSignificant, leastSignificant);
 
-        return value;
+        return result;
     }
 
     public void Write8(ushort address, byte value)
