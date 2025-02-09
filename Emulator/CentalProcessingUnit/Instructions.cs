@@ -524,7 +524,7 @@ public partial class CPU
                 break;
 
             case 0x40:
-                B = B; // This instruction seems useless
+                B = B; // Does nothing and can be treated as a no-op. Though some emulators use them for debugging
                 break;
             case 0x41:
                 B = C;
@@ -551,7 +551,7 @@ public partial class CPU
                 C = B;
                 break;
             case 0x49:
-                C = C; // This instruction seems useless
+                C = C; // Does nothing and can be treated as a no-op. Though some emulators use them for debugging
                 break;
             case 0x4A:
                 C = D;
@@ -579,7 +579,7 @@ public partial class CPU
                 D = C;
                 break;
             case 0x52:
-                D = D; // This instruction seems useless
+                D = D; // Does nothing and can be treated as a no-op. Though some emulators use them for debugging
                 break;
             case 0x53:
                 D = E;
@@ -606,7 +606,7 @@ public partial class CPU
                 E = D;
                 break;
             case 0x5B:
-                E = E; // This instruction seems useless
+                E = E; // Does nothing and can be treated as a no-op. Though some emulators use them for debugging
                 break;
             case 0x5C:
                 E = H;
@@ -634,7 +634,7 @@ public partial class CPU
                 H = E;
                 break;
             case 0x64:
-                H = H; // This instruction seems useless
+                H = H; // Does nothing and can be treated as a no-op. Though some emulators use them for debugging
                 break;
             case 0x65:
                 H = L;
@@ -661,7 +661,7 @@ public partial class CPU
                 L = H;
                 break;
             case 0x6D:
-                L = L; // This instruction seems useless
+                L = L; // Does nothing and can be treated as a no-op. Though some emulators use them for debugging
                 break;
             case 0x6E:
                 L = HLValue;
@@ -716,7 +716,7 @@ public partial class CPU
                 Accumulator = HLValue;
                 break;
             case 0x7F:
-                Accumulator = Accumulator; // This instruction seems useless
+                Accumulator = Accumulator; // Does nothing and can be treated as a no-op. Though some emulators use them for debugging
                 break;
 
             case 0x80:
