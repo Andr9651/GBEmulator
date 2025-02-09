@@ -253,6 +253,7 @@ public partial class CPU
 
         // Many instructions uses the byte stored on the address contained in HL
         byte HLValue = _mmu.Read8(HL);
+        ushort highRAMAddress = 0xFF00;
 
         switch (instructionCode)
         {
@@ -938,12 +939,12 @@ public partial class CPU
                 Jump(next16Bits, CarryFlag == true);
                 break;
             case 0xDB:
-                break;
+                throw new Exception("Unused instruction");
             case 0xDC:
                 CallSubroutine(next16Bits, CarryFlag == true);
                 break;
             case 0xDD:
-                break;
+                throw new Exception("Unused instruction");
             case 0xDE:
                 Sub8bitRegisterAndCarryFromAccumulator(next8Bits);
                 break;
@@ -952,16 +953,18 @@ public partial class CPU
                 break;
 
             case 0xE0:
+                _mmu.Write8((ushort)(highRAMAddress + next8Bits), Accumulator);
                 break;
             case 0xE1:
                 HL = PopStack();
                 break;
             case 0xE2:
+                _mmu.Write8((ushort)(highRAMAddress + C), Accumulator);
                 break;
             case 0xE3:
-                break;
+                throw new Exception("Unused instruction");
             case 0xE4:
-                break;
+                throw new Exception("Unused instruction");
             case 0xE5:
                 PushStack(HL);
                 break;
@@ -977,13 +980,14 @@ public partial class CPU
                 Jump(HL, true);
                 break;
             case 0xEA:
+                _mmu.Write8(next16Bits, Accumulator);
                 break;
             case 0xEB:
-                break;
+                throw new Exception("Unused instruction");
             case 0xEC:
-                break;
+                throw new Exception("Unused instruction");
             case 0xED:
-                break;
+                throw new Exception("Unused instruction");
             case 0xEE:
                 Xor8bitRegisterWithAccumulator(next8Bits);
                 break;
@@ -992,16 +996,18 @@ public partial class CPU
                 break;
 
             case 0xF0:
+                Accumulator = _mmu.Read8((ushort)(highRAMAddress + next8Bits));
                 break;
             case 0xF1:
                 AccumulatorFlags = PopStack();
                 break;
             case 0xF2:
+                Accumulator = _mmu.Read8((ushort)(highRAMAddress + C));
                 break;
             case 0xF3:
                 break;
             case 0xF4:
-                break;
+                throw new Exception("Unused instruction");
             case 0xF5:
                 PushStack(AccumulatorFlags);
                 break;
@@ -1016,13 +1022,14 @@ public partial class CPU
             case 0xF9:
                 break;
             case 0xFA:
+                Accumulator = _mmu.Read8(next16Bits);
                 break;
             case 0xFB:
                 break;
             case 0xFC:
-                break;
+                throw new Exception("Unused instruction");
             case 0xFD:
-                break;
+                throw new Exception("Unused instruction");
             case 0xFE:
                 Compare8bitRegisterWithAccumulator(next8Bits);
                 break;
