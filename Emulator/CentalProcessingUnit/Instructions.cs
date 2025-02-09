@@ -193,10 +193,13 @@ public partial class CPU
         Accumulator = tempAccumulator;
     }
 
-    private void JumpRelative(ushort programCounter)
+    private void JumpRelative(ushort programCounter, bool condition)
     {
-        sbyte amount = (sbyte)_mmu.Read8(programCounter);
-        ProgramCounter = (ushort)(programCounter + amount);
+        if (condition == true)
+        {
+            sbyte amount = (sbyte)_mmu.Read8(programCounter);
+            ProgramCounter = (ushort)(programCounter + amount);
+        }
     }
 
     private void PushStack(ushort value)
@@ -211,6 +214,32 @@ public partial class CPU
         StackPointer += 2;
 
         return result;
+    }
+
+    private void Jump(ushort address, bool condition)
+    {
+        if (condition == true)
+        {
+            ProgramCounter = address;
+        }
+    }
+
+    private void CallSubroutine(ushort address, bool condition)
+    {
+        if (condition == true)
+        {
+            PushStack((ushort)(ProgramCounter + 3));
+            Jump(address, true);
+        }
+    }
+
+    private void ReturnFromSubroutine(bool condition)
+    {
+        if (condition == true)
+        {
+            ushort address = PopStack();
+            ProgramCounter = address;
+        }
     }
 
     private void ExecuteInstruction(byte instructionCode)
@@ -301,7 +330,7 @@ public partial class CPU
                 Accumulator = RotateByteLeftThroughCarry(Accumulator, false);
                 break;
             case 0x18:
-                JumpRelative(programCounter);
+                JumpRelative(programCounter, true);
                 break;
             case 0x19:
                 Add16bitRegisterToHL(DE);
@@ -326,10 +355,7 @@ public partial class CPU
                 break;
 
             case 0x20:
-                if (ZeroFlag == false)
-                {
-                    JumpRelative(programCounter);
-                }
+                JumpRelative(programCounter, ZeroFlag == false);
                 break;
             case 0x21:
                 HL = next16Bits;
@@ -354,10 +380,7 @@ public partial class CPU
                 throw new NotImplementedException("DAA not implemented");
                 break;
             case 0x28:
-                if (ZeroFlag == true)
-                {
-                    JumpRelative(programCounter);
-                }
+                JumpRelative(programCounter, ZeroFlag == true);
                 break;
             case 0x29:
                 Add16bitRegisterToHL(HL);
@@ -386,10 +409,7 @@ public partial class CPU
                 break;
 
             case 0x30:
-                if (CarryFlag == false)
-                {
-                    JumpRelative(programCounter);
-                }
+                JumpRelative(programCounter, CarryFlag == false);
                 break;
             case 0x31:
                 StackPointer = next16Bits;
@@ -418,10 +438,7 @@ public partial class CPU
                 CarryFlag = true;
                 break;
             case 0x38:
-                if (CarryFlag == true)
-                {
-                    JumpRelative(programCounter);
-                }
+                JumpRelative(programCounter, CarryFlag == true);
                 break;
             case 0x39:
                 Add16bitRegisterToHL(StackPointer);
@@ -841,15 +858,19 @@ public partial class CPU
                 break;
 
             case 0xC0:
+                ReturnFromSubroutine(ZeroFlag == false);
                 break;
             case 0xC1:
                 BC = PopStack();
                 break;
             case 0xC2:
+                Jump(next16Bits, ZeroFlag == false);
                 break;
             case 0xC3:
+                Jump(next16Bits, true);
                 break;
             case 0xC4:
+                CallSubroutine(next16Bits, ZeroFlag == false);
                 break;
             case 0xC5:
                 PushStack(BC);
@@ -858,36 +879,46 @@ public partial class CPU
                 Add8bitRegisterToAccumulator(next8Bits);
                 break;
             case 0xC7:
+                CallSubroutine(0x00, true);
                 break;
             case 0xC8:
+                ReturnFromSubroutine(ZeroFlag == true);
                 break;
             case 0xC9:
+                ReturnFromSubroutine(true);
                 break;
             case 0xCA:
+                Jump(next16Bits, ZeroFlag == true);
                 break;
             case 0xCB:
                 ExecuteCBInstruction(next8Bits);
                 break;
             case 0xCC:
+                CallSubroutine(next16Bits, ZeroFlag == true);
                 break;
             case 0xCD:
+                CallSubroutine(next16Bits, true);
                 break;
             case 0xCE:
                 Add8bitRegisterAndCarryToAccumulator(next8Bits);
                 break;
             case 0xCF:
+                CallSubroutine(0x08, true);
                 break;
 
             case 0xD0:
+                ReturnFromSubroutine(CarryFlag == false);
                 break;
             case 0xD1:
                 DE = PopStack();
                 break;
             case 0xD2:
+                Jump(next16Bits, CarryFlag == false);
                 break;
             case 0xD3:
-                break;
+                throw new Exception("Unused instruction");
             case 0xD4:
+                CallSubroutine(next16Bits, CarryFlag == false);
                 break;
             case 0xD5:
                 PushStack(DE);
@@ -896,16 +927,20 @@ public partial class CPU
                 Sub8bitRegisterFromAccumulator(next8Bits);
                 break;
             case 0xD7:
+                CallSubroutine(0x10, true);
                 break;
             case 0xD8:
+                ReturnFromSubroutine(CarryFlag == true);
                 break;
             case 0xD9:
                 break;
             case 0xDA:
+                Jump(next16Bits, CarryFlag == true);
                 break;
             case 0xDB:
                 break;
             case 0xDC:
+                CallSubroutine(next16Bits, CarryFlag == true);
                 break;
             case 0xDD:
                 break;
@@ -913,6 +948,7 @@ public partial class CPU
                 Sub8bitRegisterAndCarryFromAccumulator(next8Bits);
                 break;
             case 0xDF:
+                CallSubroutine(0x18, true);
                 break;
 
             case 0xE0:
@@ -933,10 +969,12 @@ public partial class CPU
                 And8bitRegisterWithAccumulator(next8Bits);
                 break;
             case 0xE7:
+                CallSubroutine(0x20, true);
                 break;
             case 0xE8:
                 break;
             case 0xE9:
+                Jump(HL, true);
                 break;
             case 0xEA:
                 break;
@@ -950,6 +988,7 @@ public partial class CPU
                 Xor8bitRegisterWithAccumulator(next8Bits);
                 break;
             case 0xEF:
+                CallSubroutine(0x28, true);
                 break;
 
             case 0xF0:
@@ -970,6 +1009,7 @@ public partial class CPU
                 Or8bitRegisterWithAccumulator(next8Bits);
                 break;
             case 0xF7:
+                CallSubroutine(0x30, true);
                 break;
             case 0xF8:
                 break;
@@ -987,6 +1027,7 @@ public partial class CPU
                 Compare8bitRegisterWithAccumulator(next8Bits);
                 break;
             case 0xFF:
+                CallSubroutine(0x38, true);
                 break;
 
             default:
