@@ -36,6 +36,8 @@ var registers = new Registers
     L = 0,
     ProgramCounter = 0,
     StackPointer = 0,
+    InterruptMasterEnable = false,
+    QueueInterruptMasterEnableSet = false,
 };
 
 var cpu = new CPU(mmu, registers);

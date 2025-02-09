@@ -2,16 +2,19 @@ namespace GBemulator.CentralProcessingUnit;
 
 public struct Registers
 {
-    public ushort StackPointer;
-    public ushort ProgramCounter;
-    public byte Accumulator;
-    public byte Flags;
-    public byte B;
-    public byte C;
-    public byte D;
-    public byte E;
-    public byte H;
-    public byte L;
+    public required ushort StackPointer;
+    public required ushort ProgramCounter;
+    public required byte Accumulator;
+    public required byte Flags;
+    public required byte B;
+    public required byte C;
+    public required byte D;
+    public required byte E;
+    public required byte H;
+    public required byte L;
+    public required bool InterruptMasterEnable;
+    // The instruction to set the InterruptMasterEnable is delayed by one instruction so this is here to enable that
+    public required bool QueueInterruptMasterEnableSet;
 
     public override string ToString()
     {
