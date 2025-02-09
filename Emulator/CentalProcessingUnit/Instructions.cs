@@ -261,6 +261,44 @@ public partial class CPU
         return (ushort)result;
     }
 
+    private void DecimalAdjustAccumulator()
+    {
+        byte adjustment = 0;
+
+        if (SubtractionFlag == true)
+        {
+            if (HalfCarryFlag == true)
+            {
+                adjustment += 0x06;
+            }
+
+            if (CarryFlag == true)
+            {
+                adjustment += 0x60;
+            }
+
+            Accumulator -= adjustment;
+        }
+        else
+        {
+            if (HalfCarryFlag == true || (Accumulator & 0x0F) > 0x09)
+            {
+                adjustment += 0x06;
+            }
+
+            if (CarryFlag == true || Accumulator > 0x99)
+            {
+                adjustment += 0x60;
+                CarryFlag = true;
+            }
+
+            Accumulator += adjustment;
+        }
+
+        ZeroFlag = Accumulator == 0;
+        HalfCarryFlag = false;
+    }
+
     private void ExecuteInstruction(byte instructionCode)
     {
         // ProgramCounter increments have been deferred so this takes care of the increment that would have happened when reading the current instruction
@@ -397,7 +435,7 @@ public partial class CPU
                 H = next8Bits;
                 break;
             case 0x27:
-                throw new NotImplementedException("DAA not implemented");
+                DecimalAdjustAccumulator();
                 break;
             case 0x28:
                 JumpRelative(programCounter, ZeroFlag == true);
@@ -1064,7 +1102,7 @@ public partial class CPU
                 break;
 
             default:
-                throw new Exception($"Invalid opcode: 0x{instructionCode:X2}");
+                throw new Exception($"Invalid opcode: 0x{instructionCode:X}");
         }
     }
 
