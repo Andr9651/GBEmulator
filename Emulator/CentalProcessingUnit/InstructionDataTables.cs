@@ -93,8 +93,30 @@ public partial class CPU
         2,  2,  2,  2,  2,  2,  4,  2,  2,  2,  2,  2,  2,  2,  4,  2, // Fx
     ];
 
-    private void IncrementProgramCounter(ushort instructionCode)
+    private bool instructionConditionMet = false;
+
+    private void IncrementProgramCounter(byte instructionCode)
     {
         ProgramCounter += ProgramCounterIncrementsPerInstruction[instructionCode];
+    }
+
+    private void IncrementCycles(byte InstructionCode)
+    {
+        if (instructionConditionMet == true)
+        {
+            instructionConditionMet = false;
+
+            MachineCycleCounter += MachineCyclesPerConditionalInstruction[InstructionCode];
+            return;
+        }
+
+        if (InstructionCode == 0xCB)
+        {
+            byte CBInstructionCode = _mmu.Read8((ushort)(ProgramCounter + 1));
+            MachineCycleCounter += MachineCyclesPerCBInstruction[CBInstructionCode];
+            return;
+        }
+
+        MachineCycleCounter += MachineCyclesPerInstruction[InstructionCode];
     }
 }

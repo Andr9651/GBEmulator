@@ -141,6 +141,8 @@ public partial class CPU
         _registers = registers;
     }
 
+    public uint MachineCycleCounter { get; private set; } = 0;
+
     public void Run()
     {
         _running = true;
@@ -155,6 +157,7 @@ public partial class CPU
             }
 
             ExecuteInstruction(instructionCode);
+            IncrementCycles(instructionCode);
             IncrementProgramCounter(instructionCode);
         }
     }

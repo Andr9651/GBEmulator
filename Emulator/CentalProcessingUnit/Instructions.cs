@@ -195,6 +195,7 @@ public partial class CPU
     {
         if (condition == true)
         {
+            instructionConditionMet = true;
             sbyte amount = (sbyte)_mmu.Read8(programCounter);
             ProgramCounter = (ushort)(programCounter + amount);
         }
@@ -218,6 +219,7 @@ public partial class CPU
     {
         if (condition == true)
         {
+            instructionConditionMet = true;
             ProgramCounter = address;
         }
     }
@@ -226,6 +228,7 @@ public partial class CPU
     {
         if (condition == true)
         {
+            instructionConditionMet = true;
             PushStack((ushort)(ProgramCounter + 3));
             Jump(address, true);
         }
@@ -235,6 +238,7 @@ public partial class CPU
     {
         if (condition == true)
         {
+            instructionConditionMet = true;
             ushort address = PopStack();
             ProgramCounter = address;
         }
