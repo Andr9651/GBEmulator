@@ -18,21 +18,7 @@ public class CPUTests
 
         var mmu = new MMU(program);
 
-        var registers = new Registers
-        {
-            Accumulator = 0,
-            Flags = 0,
-            B = 0,
-            C = 0,
-            D = 0,
-            E = 0,
-            H = 0,
-            L = 0,
-            ProgramCounter = 0,
-            StackPointer = 0,
-            InterruptMasterEnable = false,
-            QueueInterruptMasterEnableSet = false,
-        };
+        var registers = Registers.EmptyRegisters();
 
         var cpu = new CPU(mmu, registers);
 

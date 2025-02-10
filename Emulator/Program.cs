@@ -1,4 +1,4 @@
-﻿using GBemulator.CentralProcessingUnit;
+using GBemulator.CentralProcessingUnit;
 using GBemulator.MemoryManagementUnit;
 
 // for (int i = 0; i <= 0xFF; i++)
@@ -24,21 +24,7 @@ byte[] program = {
 
 var mmu = new MMU(program);
 
-var registers = new Registers
-{
-    Accumulator = 0,
-    Flags = 0,
-    B = 0,
-    C = 0,
-    D = 0,
-    E = 0,
-    H = 0,
-    L = 0,
-    ProgramCounter = 0,
-    StackPointer = 0,
-    InterruptMasterEnable = false,
-    QueueInterruptMasterEnableSet = false,
-};
+var registers = Registers.PostBootRegistersDMG();
 
 var cpu = new CPU(mmu, registers);
 
