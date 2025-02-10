@@ -2,15 +2,16 @@ namespace GBemulator.MemoryManagementUnit;
 
 public class MMU
 {
-    private readonly byte[] _memory = new byte[0xffff];
+    private readonly byte[] _memory;
 
     public MMU()
     {
-
+        _memory = new byte[0xffff];
     }
 
     public MMU(byte[] memory)
     {
+        _memory = new byte[0xffff];
         memory.CopyTo(_memory, 0);
     }
 
