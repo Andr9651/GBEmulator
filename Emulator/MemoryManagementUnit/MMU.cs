@@ -44,6 +44,25 @@ public class MMU
         <= 0xFFFF => Read8(address),                            // Interrupt Enable Register (IE)
     };
 
+    public void Write8Mapped(ushort address, byte value)
+    {
+        switch (address)
+        {
+            case <= 0x3FFF: break;                                            // ROM Bank 00
+            case <= 0x7FFF: break;                                            // ROM Bank 01-NN (switchable ROM Bank)
+            case <= 0x9FFF: Write8(address, value); break;                    // VRAM (Switchable in CGB mode)
+            case <= 0xBFFF: Write8(address, value); break;                    // External RAM
+            case <= 0xCFFF: Write8(address, value); break;                    // Work RAM
+            case <= 0xDFFF: Write8(address, value); break;                    // Work RAM (Switchable in CGB mode)
+            case <= 0xFDFF: Write8((ushort)(address - 0x2000), value); break; // Echo RAM (mirror of C000–DDFF)
+            case <= 0xFE9F: Write8(address, value); break;                    // Object attribute memory (OAM)
+            case <= 0xFEFF: break;                                            // Not Usable, see https://gbdev.io/pandocs/Memory_Map.html#fea0feff-range
+            case <= 0xFF7F: Write8(address, value); break;                    // I/O Registers
+            case <= 0xFFFE: Write8(address, value); break;                    // High RAM
+            case <= 0xFFFF: Write8(address, value); break;                    // Interrupt Enable Register (IE)
+        }
+    }
+
     public byte Read8(ushort address)
     {
         return _memory[address];
