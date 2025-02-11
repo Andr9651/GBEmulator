@@ -1,5 +1,6 @@
 namespace GBemulator.MemoryManagementUnit;
 
+// Memory Map can be read here: https://gbdev.io/pandocs/Memory_Map.html
 public class MMU
 {
     private readonly byte[] _memory;
@@ -8,8 +9,11 @@ public class MMU
 
     public MMU(byte[]? memory = null, bool bootMode = false, byte[]? bootROM = null)
     {
-        _memory = new byte[0xffff];
-        _bootROM = new byte[0x00FF];
+        // Memory array should be 2^16
+        _memory = new byte[0xFFFF + 1];
+
+        // Boot ROM array should be 2^8
+        _bootROM = new byte[0x00FF + 1];
         _bootMode = bootMode;
 
         if (memory is not null)
@@ -48,7 +52,7 @@ public class MMU
     public ushort Read16(ushort address)
     {
         byte leastSignificant = _memory[address];
-        byte mostSignificant = _memory[address + 1];
+        byte mostSignificant = _memory[(ushort)(address + 1)];
 
         ushort result = Helpers.BytesToUshort(mostSignificant, leastSignificant);
 
