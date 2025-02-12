@@ -18,14 +18,18 @@ public struct Registers
 
     public override string ToString()
     {
-        return $@"
-AF: {Helpers.BytesToUshort(Accumulator, Flags):b16}
-BC: {Helpers.BytesToUshort(B, C):b16}
-DE: {Helpers.BytesToUshort(D, E):b16}
-HL: {Helpers.BytesToUshort(H, L):b16}
-StackPointer: {StackPointer:b16}
-ProgramCounter: {ProgramCounter:b16} {ProgramCounter}
-";
+        return $"PC: {ProgramCounter:X4} | " +
+        $"BC: {Helpers.BytesToUshort(B, C):X4} " +
+        $"DE: {Helpers.BytesToUshort(D, E):X4} " +
+        $"HL: {Helpers.BytesToUshort(H, L):X4} " +
+        $"AF: {Helpers.BytesToUshort(Accumulator, Flags):X4} " +
+        $"SP: {StackPointer:X4}" +
+        " [" +
+        (Flags.GetBit(7) ? "Z" : " ") +
+        (Flags.GetBit(6) ? "N" : " ") +
+        (Flags.GetBit(5) ? "H" : " ") +
+        (Flags.GetBit(4) ? "C" : " ") +
+        "]";
     }
 
     public static Registers EmptyRegisters()
