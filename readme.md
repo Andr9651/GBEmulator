@@ -20,6 +20,10 @@ Most things related to gameboy emulator development can be found at https://gbde
 * https://gbdev.gg8.se/files/roms/bootroms/
 * https://gbdev.gg8.se/files/roms/blargg-gb-tests/
 
+### Emulator
+* https://bgb.bircd.org/
+    * This emulator contains a debugger that I used to compare my emulator against, and was pretty instrumental.
+
 ### Instruction codes and explanations
 * https://rgbds.gbdev.io/docs/v0.9.1/gbz80.7
     * Generally good explanations for the individual instructions
