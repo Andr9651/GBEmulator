@@ -120,4 +120,140 @@ public static class Helpers
 
         return value;
     }
+
+    // This should not be single function but I'm lazy and a file selecter isn't the goal of this project
+    public static byte[] LoadROM(string path = "..")
+    {
+        string currentPath = Path.GetFullPath(path);
+        int selectionPointer = 0;
+        int displayLength = 10;
+        byte[]? ROM = null;
+        List<FileSystemInfo> entries = [];
+
+        Console.CursorVisible = false;
+        ChangeFolder(currentPath);
+
+        while (ROM == null)
+        {
+            PrintDisplay();
+            ReadInput();
+        }
+
+        Console.CursorVisible = true;
+
+        return ROM;
+
+        void ChangeFolder(string path)
+        {
+            currentPath = path;
+            var foldersInDir = Directory.GetDirectories(currentPath).Select(entry => new DirectoryInfo(entry));
+            var filesInDir = Directory.GetFiles(currentPath).Select(entry => new FileInfo(entry));
+            entries = [.. foldersInDir, .. filesInDir];
+            selectionPointer = 0;
+        }
+
+        void PrintDisplay()
+        {
+            Console.Clear();
+            Console.WriteLine("Select Test ROM");
+
+            // Integer division truncates the decimals so this "rounds" to nearest displayLength
+            int pageStart = (selectionPointer / displayLength) * displayLength;
+
+            Console.WriteLine(currentPath);
+
+            Console.WriteLine($"[{selectionPointer}/{entries.Count}] ");
+
+            if (entries.Count == 0)
+            {
+                Console.WriteLine("The folder is empty");
+                return;
+            }
+
+            for (int i = pageStart; i < pageStart + displayLength; i++)
+            {
+                if (i >= entries.Count)
+                {
+                    break;
+                }
+
+                if (i == selectionPointer)
+                {
+                    Console.BackgroundColor = ConsoleColor.White;
+                    Console.ForegroundColor = ConsoleColor.Black;
+                }
+
+                Console.WriteLine($"[{i - (pageStart)}] {entries[i].Name}");
+
+                Console.ResetColor();
+            }
+        }
+
+        void ReadInput()
+        {
+            ConsoleKeyInfo input = Console.ReadKey();
+
+            int inputNumber = input.KeyChar - '0';
+
+            if (inputNumber >= 0 && inputNumber <= 9)
+            {
+                OpenEntry(selectionPointer + inputNumber);
+            }
+
+            switch (input.Key)
+            {
+                case ConsoleKey.UpArrow:
+                    selectionPointer--; WrapSelectionPointer(); break;
+
+                case ConsoleKey.DownArrow:
+                    selectionPointer++; WrapSelectionPointer(); break;
+
+                case ConsoleKey.RightArrow:
+                    OpenEntry(selectionPointer); break;
+
+                case ConsoleKey.Backspace:
+                case ConsoleKey.LeftArrow:
+                    MoveToParentFolder(); break;
+
+                case ConsoleKey.Escape:
+                    Environment.Exit(0); break;
+
+                default: break;
+            }
+        }
+
+        void WrapSelectionPointer()
+        {
+            selectionPointer %= entries.Count;
+
+            if (selectionPointer < 0)
+            {
+                selectionPointer += entries.Count;
+            }
+        }
+
+        void OpenEntry(int selectionIndex)
+        {
+            var entry = entries[selectionIndex];
+
+            if (entry is DirectoryInfo)
+            {
+                ChangeFolder(entry.FullName);
+            }
+            else if (entry is FileInfo)
+            {
+                ROM = File.ReadAllBytes(entry.FullName);
+            }
+        }
+
+        void MoveToParentFolder()
+        {
+            var parentDir = Directory.GetParent(currentPath);
+
+            if (parentDir != null)
+            {
+                ChangeFolder(parentDir.FullName);
+            }
+        }
+    }
 }
