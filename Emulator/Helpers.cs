@@ -121,6 +121,18 @@ public static class Helpers
         return value;
     }
 
+    public static int ConsoleReadNumber()
+    {
+        string? input = Console.ReadLine();
+
+        if (int.TryParse(input, out int result))
+        {
+            return result;
+        }
+
+        return 0;
+    }
+
     // This should not be single function but I'm lazy and a file selecter isn't the goal of this project
     public static byte[] LoadROM(string path = "..")
     {

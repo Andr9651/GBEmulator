@@ -3,6 +3,8 @@ namespace GBemulator.MemoryManagementUnit;
 // Memory Map can be read here: https://gbdev.io/pandocs/Memory_Map.html
 public class MMU
 {
+    public byte[] Memory => _memory;
+
     private readonly byte[] _memory;
     private readonly byte[] _bootROM;
     private bool _bootMode;

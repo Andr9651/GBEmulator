@@ -9,6 +9,8 @@ public partial class CPU
     private Registers _registers;
     public Registers Registers => _registers;
 
+    private static readonly bool DEBUG = true;
+
     private bool InterruptMasterEnable
     {
         get => _registers.InterruptMasterEnable;
@@ -146,6 +148,7 @@ public partial class CPU
     public void Run()
     {
         _running = true;
+        int debugRun = 0;
 
         while (_running == true)
         {
@@ -159,6 +162,21 @@ public partial class CPU
             ExecuteInstruction(instructionCode);
             IncrementCycles(instructionCode);
             IncrementProgramCounter(instructionCode);
+
+            if (DEBUG)
+            {
+                Console.WriteLine(Registers);
+
+                if (debugRun == 0)
+                {
+                    File.WriteAllBytes("../Memory.bin", _mmu.Memory);
+                    debugRun += Helpers.ConsoleReadNumber();
+                }
+                else
+                {
+                    debugRun--;
+                }
+            }
         }
     }
 }
