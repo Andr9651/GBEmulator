@@ -143,7 +143,19 @@ public static class Helpers
         List<FileSystemInfo> entries = [];
 
         Console.CursorVisible = false;
-        ChangeFolder(currentPath);
+
+        if (File.Exists(currentPath))
+        {
+            ROM = File.ReadAllBytes(currentPath);
+        }
+        else if (Directory.Exists(currentPath))
+        {
+            ChangeFolder(currentPath);
+        }
+        else
+        {
+            ChangeFolder(Path.GetFullPath(".."));
+        }
 
         while (ROM == null)
         {

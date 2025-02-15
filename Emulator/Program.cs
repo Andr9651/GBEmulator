@@ -2,7 +2,9 @@
 using GBemulator.CentralProcessingUnit;
 using GBemulator.MemoryManagementUnit;
 
-byte[] romBytes = Helpers.LoadROM("../ROMs");
+string path = args[0] ?? "../ROMs";
+
+byte[] romBytes = Helpers.LoadROM(path);
 
 var mmu = new MMU(romBytes);
 
