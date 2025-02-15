@@ -5,27 +5,6 @@ public partial class CPU
 {
     // Data copied from https://meganesu.github.io/generate-gb-opcodes/
 
-    // 0xCB set to 2 instead of 0 to account for 16-bit instructions
-    private readonly byte[] ProgramCounterIncrementsPerInstruction = [
-    //  x0	x1	x2	x3	x4	x5	x6	x7	x8	x9	xA	xB	xC	xD	xE	xF
-        1,  3,  1,  1,  1,  1,  2,  1,  3,  1,  1,  1,  1,  1,  2,  1, // 0x
-        2,  3,  1,  1,  1,  1,  2,  1,  2,  1,  1,  1,  1,  1,  2,  1, // 1x
-        2,  3,  1,  1,  1,  1,  2,  1,  2,  1,  1,  1,  1,  1,  2,  1, // 2x
-        2,  3,  1,  1,  1,  1,  2,  1,  2,  1,  1,  1,  1,  1,  2,  1, // 3x
-        1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1, // 4x
-        1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1, // 5x
-        1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1, // 6x
-        1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1, // 7x
-        1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1, // 8x
-        1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1, // 9x
-        1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1, // Ax
-        1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1,  1, // Bx
-        1,  1,  3,  3,  3,  1,  2,  1,  1,  1,  3,  2,  3,  3,  2,  1, // Cx
-        1,  1,  3,  0,  3,  1,  2,  1,  1,  1,  3,  0,  3,  0,  2,  1, // Dx
-        2,  1,  1,  0,  0,  1,  2,  1,  2,  1,  3,  0,  0,  0,  2,  1, // Ex
-        2,  1,  1,  1,  0,  1,  2,  1,  2,  1,  3,  1,  0,  0,  2,  1, // Fx
-    ];
-
     // Timing in the gameboy are split into System Clock Ticks (T-cycles) and Machine-cycles (M-cycles)
     // It's split this way since each CPU instruction will always take a multiple of 4 T-cycles per instruction
     // It's therefor (allegedly) simpler in some scenarioes to use M-cycles and multiply by 4 when needed
@@ -94,11 +73,6 @@ public partial class CPU
     ];
 
     private bool instructionConditionMet = false;
-
-    private void IncrementProgramCounter(byte instructionCode)
-    {
-        ProgramCounter += ProgramCounterIncrementsPerInstruction[instructionCode];
-    }
 
     private void IncrementCycles(byte InstructionCode)
     {

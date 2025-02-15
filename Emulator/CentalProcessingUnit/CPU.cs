@@ -145,6 +145,32 @@ public partial class CPU
 
     public uint MachineCycleCounter { get; private set; } = 0;
 
+    public byte Read8(ushort address)
+    {
+        byte result = _mmu.Read8(address);
+        ProgramCounter++;
+        return result;
+    }
+
+    public ushort Read16(ushort address)
+    {
+        ushort result = _mmu.Read16(address);
+        ProgramCounter += 2;
+        return result;
+    }
+
+    public void Write8(ushort address, byte value)
+    {
+        _mmu.Write8(address, value);
+        ProgramCounter++;
+    }
+
+    public void Write16(ushort address, ushort value)
+    {
+        _mmu.Write16(address, value);
+        ProgramCounter += 2;
+    }
+
     public void Run()
     {
         _running = true;
@@ -152,7 +178,7 @@ public partial class CPU
 
         while (_running == true)
         {
-            byte instructionCode = _mmu.Read8(ProgramCounter);
+            byte instructionCode = Read8(ProgramCounter);
 
             if (QueueInterruptMasterEnableSet == true)
             {
@@ -161,7 +187,6 @@ public partial class CPU
 
             ExecuteInstruction(instructionCode);
             IncrementCycles(instructionCode);
-            IncrementProgramCounter(instructionCode);
 
             if (DEBUG)
             {
