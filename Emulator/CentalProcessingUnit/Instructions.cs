@@ -105,7 +105,14 @@ public partial class CPU
 
     private void Sub8bitRegisterAndCarryFromAccumulator(byte value)
     {
+        int result = Accumulator - value - (CarryFlag ? 1 : 0);
 
+        ZeroFlag = result == 0;
+        SubtractionFlag = false;
+        CarryFlag = result < 0;
+        HalfCarryFlag = CheckHalfCarrySubtraction(Accumulator, value, CarryFlag);
+
+        Accumulator = (byte)result; // negative numbers underflow when cast to byte
     }
 
     private void And8bitRegisterWithAccumulator(byte value)
