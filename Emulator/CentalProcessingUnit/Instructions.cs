@@ -66,7 +66,7 @@ public partial class CPU
     {
         int result = Accumulator + value;
 
-        ZeroFlag = result == 0;
+        ZeroFlag = ((byte)result) == 0;
         SubtractionFlag = false;
         CarryFlag = result > 0xFF;
         HalfCarryFlag = CheckHalfCarryAddition(Accumulator, value);
@@ -78,7 +78,7 @@ public partial class CPU
     {
         int result = Accumulator + value + (CarryFlag ? 1 : 0);
 
-        ZeroFlag = result == 0;
+        ZeroFlag = ((byte)result) == 0;
         SubtractionFlag = false;
         CarryFlag = result > 0xFF;
         HalfCarryFlag = CheckHalfCarryAddition(Accumulator, value, CarryFlag);
@@ -90,7 +90,7 @@ public partial class CPU
     {
         int result = Accumulator - value;
 
-        ZeroFlag = result == 0;
+        ZeroFlag = ((byte)result) == 0;
         SubtractionFlag = true;
         CarryFlag = result < 0;
         HalfCarryFlag = CheckHalfCarrySubtraction(Accumulator, value);
@@ -102,7 +102,7 @@ public partial class CPU
     {
         int result = Accumulator - value - (CarryFlag ? 1 : 0);
 
-        ZeroFlag = result == 0;
+        ZeroFlag = ((byte)result) == 0;
         SubtractionFlag = true;
         CarryFlag = result < 0;
         HalfCarryFlag = CheckHalfCarrySubtraction(Accumulator, value, CarryFlag);
