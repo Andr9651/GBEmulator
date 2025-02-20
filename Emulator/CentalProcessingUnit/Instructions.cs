@@ -232,7 +232,7 @@ public partial class CPU
         if (condition == true)
         {
             instructionConditionMet = true;
-            PushStack((ushort)(ProgramCounter + 3));
+            PushStack(ProgramCounter);
             Jump(address, true);
         }
     }
