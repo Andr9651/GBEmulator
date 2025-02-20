@@ -195,10 +195,11 @@ public partial class CPU
 
     private void JumpRelative(bool condition)
     {
+        byte next = GetNext8Bits();
         if (condition == true)
         {
             instructionConditionMet = true;
-            sbyte amount = (sbyte)GetNext8Bits();
+            sbyte amount = (sbyte)next;
             ProgramCounter = (ushort)(ProgramCounter + amount);
         }
     }
