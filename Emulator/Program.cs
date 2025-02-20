@@ -5,6 +5,7 @@ using GBemulator.MemoryManagementUnit;
 bool DEBUG = true;
 
 string path = args[0] ?? "../ROMs";
+int cycleCount = int.TryParse(args[1], out int number) ? number : 50000;
 
 byte[] romBytes = Helpers.LoadROM(path);
 
@@ -18,10 +19,12 @@ int debugRun = -1;
 
 cpu.Running = true;
 
-File.WriteAllText("log.txt", null);
+StreamWriter logFile = new StreamWriter("log.txt");
+int linecount = 0;
 
 while (cpu.Running == true)
 {
+    if (linecount > cycleCount) break;
     if (DEBUG)
     {
         string logString = cpu.Registers.ToString() + " PCMEM:";
@@ -31,14 +34,13 @@ while (cpu.Running == true)
         logString += $"{mmu.Read8(programCounter):X2},";
         logString += $"{mmu.Read8(++programCounter):X2},";
         logString += $"{mmu.Read8(++programCounter):X2},";
-        logString += $"{mmu.Read8(++programCounter):X2}\n";
+        logString += $"{mmu.Read8(++programCounter):X2}";
 
-        File.AppendAllText("log.txt", logString);
-        // Console.WriteLine(logString);
+        logFile.WriteLine(logString);
 
         if (debugRun == 0)
         {
-            File.WriteAllBytes("../Memory.bin", mmu.Memory);
+            // File.WriteAllBytes("../Memory.bin", mmu.Memory);
             debugRun += Helpers.ConsoleReadNumber();
         }
         else
@@ -48,4 +50,7 @@ while (cpu.Running == true)
     }
 
     cpu.Cycle();
+    linecount++;
 }
+
+logFile.Close();
