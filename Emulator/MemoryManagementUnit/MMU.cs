@@ -41,6 +41,7 @@ public class MMU
         <= 0xFDFF => Read8((ushort)(address - 0x2000)),         // Echo RAM (mirror of C000–DDFF)
         <= 0xFE9F => Read8(address),                            // Object attribute memory (OAM)
         <= 0xFEFF => 0xFF,                                      // Not Usable, see https://gbdev.io/pandocs/Memory_Map.html#fea0feff-range
+        <= 0xFF44 => 0x90,                                      // Hardcoded LCD for Gameboy Doctor
         <= 0xFF7F => Read8(address),                            // I/O Registers
         <= 0xFFFE => Read8(address),                            // High RAM
         <= 0xFFFF => Read8(address),                            // Interrupt Enable Register (IE)

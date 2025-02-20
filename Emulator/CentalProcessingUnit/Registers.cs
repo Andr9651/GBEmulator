@@ -18,18 +18,7 @@ public struct Registers
 
     public override string ToString()
     {
-        return $"PC: {ProgramCounter:X4} | " +
-        $"BC: {Helpers.BytesToUshort(B, C):X4} " +
-        $"DE: {Helpers.BytesToUshort(D, E):X4} " +
-        $"HL: {Helpers.BytesToUshort(H, L):X4} " +
-        $"AF: {Helpers.BytesToUshort(Accumulator, Flags):X4} " +
-        $"SP: {StackPointer:X4}" +
-        " [" +
-        (Flags.GetBit(7) ? "Z" : " ") +
-        (Flags.GetBit(6) ? "N" : " ") +
-        (Flags.GetBit(5) ? "H" : " ") +
-        (Flags.GetBit(4) ? "C" : " ") +
-        "]";
+        return $"A:{Accumulator:X2} F:{Flags:X2} B:{B:X2} C:{C:X2} D:{D:X2} E:{E:X2} H:{H:X2} L:{L:X2} SP:{StackPointer:X4} PC:{ProgramCounter:X4}";
     }
 
     public static Registers EmptyRegisters()
@@ -60,6 +49,26 @@ public struct Registers
         {
             Accumulator = 0x01,
             Flags = 0b1000_0000, // this assumes the header checksum is 0x00
+            B = 0x00,
+            C = 0x13,
+            D = 0x00,
+            E = 0xD8,
+            H = 0x01,
+            L = 0x4D,
+            ProgramCounter = 0x100,
+            StackPointer = 0xFFFE,
+            InterruptMasterEnable = false,
+            QueueInterruptMasterEnableSet = false,
+        };
+    }
+
+
+    public static Registers PostBootRegistersGameboyDoctor()
+    {
+        return new Registers
+        {
+            Accumulator = 0x01,
+            Flags = 0xB0,
             B = 0x00,
             C = 0x13,
             D = 0x00,

@@ -10,20 +10,31 @@ byte[] romBytes = Helpers.LoadROM(path);
 
 var mmu = new MMU(romBytes);
 
-var registers = Registers.PostBootRegistersDMG();
-
+var registers = Registers.PostBootRegistersGameboyDoctor();
 
 var cpu = new CPU(mmu, registers);
 
-int debugRun = 0;
+int debugRun = -1;
+
+cpu.Running = true;
+
+File.WriteAllText("log.txt", null);
 
 while (cpu.Running == true)
 {
-    cpu.Cycle();
-
     if (DEBUG)
     {
-        Console.WriteLine(cpu.Registers);
+        string logString = cpu.Registers.ToString() + " PCMEM:";
+
+        ushort programCounter = cpu.Registers.ProgramCounter;
+
+        logString += $"{mmu.Read8Mapped(programCounter):X2},";
+        logString += $"{mmu.Read8Mapped(++programCounter):X2},";
+        logString += $"{mmu.Read8Mapped(++programCounter):X2},";
+        logString += $"{mmu.Read8Mapped(++programCounter):X2}\n";
+
+        File.AppendAllText("log.txt", logString);
+        // Console.WriteLine(logString);
 
         if (debugRun == 0)
         {
@@ -35,7 +46,6 @@ while (cpu.Running == true)
             debugRun--;
         }
     }
+
+    cpu.Cycle();
 }
-
-
-Console.WriteLine($"{cpu.Registers}");
