@@ -28,10 +28,10 @@ while (cpu.Running == true)
 
         ushort programCounter = cpu.Registers.ProgramCounter;
 
-        logString += $"{mmu.Read8Mapped(programCounter):X2},";
-        logString += $"{mmu.Read8Mapped(++programCounter):X2},";
-        logString += $"{mmu.Read8Mapped(++programCounter):X2},";
-        logString += $"{mmu.Read8Mapped(++programCounter):X2}\n";
+        logString += $"{mmu.Read8(programCounter):X2},";
+        logString += $"{mmu.Read8(++programCounter):X2},";
+        logString += $"{mmu.Read8(++programCounter):X2},";
+        logString += $"{mmu.Read8(++programCounter):X2}\n";
 
         File.AppendAllText("log.txt", logString);
         // Console.WriteLine(logString);
