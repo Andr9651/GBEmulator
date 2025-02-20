@@ -198,7 +198,7 @@ public partial class CPU
         if (condition == true)
         {
             instructionConditionMet = true;
-            sbyte amount = (sbyte)Next8Bits;
+            sbyte amount = (sbyte)GetNext8Bits();
             ProgramCounter = (ushort)(ProgramCounter + amount);
         }
     }
@@ -321,7 +321,7 @@ public partial class CPU
                 // No Operation
                 break;
             case 0x01:
-                BC = Next16Bits;
+                BC = GetNext16Bits();
                 break;
             case 0x02:
                 _mmu.Write8(BC, Accumulator);
@@ -336,13 +336,13 @@ public partial class CPU
                 B = Decrement8bitRegister(B);
                 break;
             case 0x06:
-                B = Next8Bits;
+                B = GetNext8Bits();
                 break;
             case 0x07:
                 Accumulator = RotateByteLeft(Accumulator, false);
                 break;
             case 0x08:
-                _mmu.Write16(Next16Bits, StackPointer);
+                _mmu.Write16(GetNext16Bits(), StackPointer);
                 break;
             case 0x09:
                 Add16bitRegisterToHL(BC);
@@ -360,7 +360,7 @@ public partial class CPU
                 C = Decrement8bitRegister(C);
                 break;
             case 0x0E:
-                C = Next8Bits;
+                C = GetNext8Bits();
                 break;
             case 0x0F:
                 Accumulator = RotateByteRight(Accumulator, false);
@@ -370,7 +370,7 @@ public partial class CPU
                 Running = false;
                 break;
             case 0x11:
-                DE = Next16Bits;
+                DE = GetNext16Bits();
                 break;
             case 0x12:
                 _mmu.Write8(DE, Accumulator);
@@ -385,7 +385,7 @@ public partial class CPU
                 D = Decrement8bitRegister(D);
                 break;
             case 0x16:
-                D = Next8Bits;
+                D = GetNext8Bits();
                 break;
             case 0x17:
                 Accumulator = RotateByteLeftThroughCarry(Accumulator, false);
@@ -409,7 +409,7 @@ public partial class CPU
                 E = Decrement8bitRegister(E);
                 break;
             case 0x1E:
-                E = Next8Bits;
+                E = GetNext8Bits();
                 break;
             case 0x1F:
                 Accumulator = RotateByteRightThroughCarry(Accumulator, false);
@@ -419,7 +419,7 @@ public partial class CPU
                 JumpRelative(ZeroFlag == false);
                 break;
             case 0x21:
-                HL = Next16Bits;
+                HL = GetNext16Bits();
                 break;
             case 0x22:
                 _mmu.Write8(HL, Accumulator);
@@ -435,7 +435,7 @@ public partial class CPU
                 H = Decrement8bitRegister(H);
                 break;
             case 0x26:
-                H = Next8Bits;
+                H = GetNext8Bits();
                 break;
             case 0x27:
                 DecimalAdjustAccumulator();
@@ -460,7 +460,7 @@ public partial class CPU
                 L = Decrement8bitRegister(L);
                 break;
             case 0x2E:
-                L = Next8Bits;
+                L = GetNext8Bits();
                 break;
             case 0x2F:
                 Accumulator = (byte)~Accumulator;
@@ -473,7 +473,7 @@ public partial class CPU
                 JumpRelative(CarryFlag == false);
                 break;
             case 0x31:
-                StackPointer = Next16Bits;
+                StackPointer = GetNext16Bits();
                 break;
             case 0x32:
                 Accumulator = HLValue;
@@ -489,7 +489,7 @@ public partial class CPU
                 HLValue = Decrement8bitRegister(HLValue);
                 break;
             case 0x36:
-                _mmu.Write8(HL, Next8Bits);
+                _mmu.Write8(HL, GetNext8Bits());
                 break;
             case 0x37:
                 SubtractionFlag = false;
@@ -516,7 +516,7 @@ public partial class CPU
                 Accumulator = Decrement8bitRegister(Accumulator);
                 break;
             case 0x3E:
-                Accumulator = Next8Bits;
+                Accumulator = GetNext8Bits();
                 break;
             case 0x3F:
                 SubtractionFlag = false;
@@ -923,19 +923,19 @@ public partial class CPU
                 BC = PopStack();
                 break;
             case 0xC2:
-                Jump(Next16Bits, ZeroFlag == false);
+                Jump(GetNext16Bits(), ZeroFlag == false);
                 break;
             case 0xC3:
-                Jump(Next16Bits, true);
+                Jump(GetNext16Bits(), true);
                 break;
             case 0xC4:
-                CallSubroutine(Next16Bits, ZeroFlag == false);
+                CallSubroutine(GetNext16Bits(), ZeroFlag == false);
                 break;
             case 0xC5:
                 PushStack(BC);
                 break;
             case 0xC6:
-                Add8bitRegisterToAccumulator(Next8Bits);
+                Add8bitRegisterToAccumulator(GetNext8Bits());
                 break;
             case 0xC7:
                 CallSubroutine(0x00, true);
@@ -947,19 +947,19 @@ public partial class CPU
                 ReturnFromSubroutine(true);
                 break;
             case 0xCA:
-                Jump(Next16Bits, ZeroFlag == true);
+                Jump(GetNext16Bits(), ZeroFlag == true);
                 break;
             case 0xCB:
-                ExecuteCBInstruction(Next8Bits);
+                ExecuteCBInstruction(GetNext8Bits());
                 break;
             case 0xCC:
-                CallSubroutine(Next16Bits, ZeroFlag == true);
+                CallSubroutine(GetNext16Bits(), ZeroFlag == true);
                 break;
             case 0xCD:
-                CallSubroutine(Next16Bits, true);
+                CallSubroutine(GetNext16Bits(), true);
                 break;
             case 0xCE:
-                Add8bitRegisterAndCarryToAccumulator(Next8Bits);
+                Add8bitRegisterAndCarryToAccumulator(GetNext8Bits());
                 break;
             case 0xCF:
                 CallSubroutine(0x08, true);
@@ -972,18 +972,18 @@ public partial class CPU
                 DE = PopStack();
                 break;
             case 0xD2:
-                Jump(Next16Bits, CarryFlag == false);
+                Jump(GetNext16Bits(), CarryFlag == false);
                 break;
             case 0xD3:
                 throw new Exception("Unused instruction");
             case 0xD4:
-                CallSubroutine(Next16Bits, CarryFlag == false);
+                CallSubroutine(GetNext16Bits(), CarryFlag == false);
                 break;
             case 0xD5:
                 PushStack(DE);
                 break;
             case 0xD6:
-                Sub8bitRegisterFromAccumulator(Next8Bits);
+                Sub8bitRegisterFromAccumulator(GetNext8Bits());
                 break;
             case 0xD7:
                 CallSubroutine(0x10, true);
@@ -996,24 +996,24 @@ public partial class CPU
                 ReturnFromSubroutine(true);
                 break;
             case 0xDA:
-                Jump(Next16Bits, CarryFlag == true);
+                Jump(GetNext16Bits(), CarryFlag == true);
                 break;
             case 0xDB:
                 throw new Exception("Unused instruction");
             case 0xDC:
-                CallSubroutine(Next16Bits, CarryFlag == true);
+                CallSubroutine(GetNext16Bits(), CarryFlag == true);
                 break;
             case 0xDD:
                 throw new Exception("Unused instruction");
             case 0xDE:
-                Sub8bitRegisterAndCarryFromAccumulator(Next8Bits);
+                Sub8bitRegisterAndCarryFromAccumulator(GetNext8Bits());
                 break;
             case 0xDF:
                 CallSubroutine(0x18, true);
                 break;
 
             case 0xE0:
-                _mmu.Write8((ushort)(highRAMAddress + Next8Bits), Accumulator);
+                _mmu.Write8((ushort)(highRAMAddress + GetNext8Bits()), Accumulator);
                 break;
             case 0xE1:
                 HL = PopStack();
@@ -1029,19 +1029,19 @@ public partial class CPU
                 PushStack(HL);
                 break;
             case 0xE6:
-                And8bitRegisterWithAccumulator(Next8Bits);
+                And8bitRegisterWithAccumulator(GetNext8Bits());
                 break;
             case 0xE7:
                 CallSubroutine(0x20, true);
                 break;
             case 0xE8:
-                StackPointer = AddSignedByteToStackPointer(Next8Bits);
+                StackPointer = AddSignedByteToStackPointer(GetNext8Bits());
                 break;
             case 0xE9:
                 Jump(HL, true);
                 break;
             case 0xEA:
-                _mmu.Write8(Next16Bits, Accumulator);
+                _mmu.Write8(GetNext16Bits(), Accumulator);
                 break;
             case 0xEB:
                 throw new Exception("Unused instruction");
@@ -1050,14 +1050,14 @@ public partial class CPU
             case 0xED:
                 throw new Exception("Unused instruction");
             case 0xEE:
-                Xor8bitRegisterWithAccumulator(Next8Bits);
+                Xor8bitRegisterWithAccumulator(GetNext8Bits());
                 break;
             case 0xEF:
                 CallSubroutine(0x28, true);
                 break;
 
             case 0xF0:
-                Accumulator = _mmu.Read8((ushort)(highRAMAddress + Next8Bits));
+                Accumulator = _mmu.Read8((ushort)(highRAMAddress + GetNext8Bits()));
                 break;
             case 0xF1:
                 AccumulatorFlags = PopStack();
@@ -1074,19 +1074,19 @@ public partial class CPU
                 PushStack(AccumulatorFlags);
                 break;
             case 0xF6:
-                Or8bitRegisterWithAccumulator(Next8Bits);
+                Or8bitRegisterWithAccumulator(GetNext8Bits());
                 break;
             case 0xF7:
                 CallSubroutine(0x30, true);
                 break;
             case 0xF8:
-                HL = AddSignedByteToStackPointer(Next8Bits);
+                HL = AddSignedByteToStackPointer(GetNext8Bits());
                 break;
             case 0xF9:
                 StackPointer = HL;
                 break;
             case 0xFA:
-                Accumulator = _mmu.Read8(Next16Bits);
+                Accumulator = _mmu.Read8(GetNext16Bits());
                 break;
             case 0xFB:
                 QueueInterruptMasterEnableSet = true;
@@ -1096,7 +1096,7 @@ public partial class CPU
             case 0xFD:
                 throw new Exception("Unused instruction");
             case 0xFE:
-                Compare8bitRegisterWithAccumulator(Next8Bits);
+                Compare8bitRegisterWithAccumulator(GetNext8Bits());
                 break;
             case 0xFF:
                 CallSubroutine(0x38, true);
