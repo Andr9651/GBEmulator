@@ -91,7 +91,7 @@ public partial class CPU
         int result = Accumulator - value;
 
         ZeroFlag = result == 0;
-        SubtractionFlag = false;
+        SubtractionFlag = true;
         CarryFlag = result < 0;
         HalfCarryFlag = CheckHalfCarrySubtraction(Accumulator, value);
 
@@ -103,7 +103,7 @@ public partial class CPU
         int result = Accumulator - value - (CarryFlag ? 1 : 0);
 
         ZeroFlag = result == 0;
-        SubtractionFlag = false;
+        SubtractionFlag = true;
         CarryFlag = result < 0;
         HalfCarryFlag = CheckHalfCarrySubtraction(Accumulator, value, CarryFlag);
 
