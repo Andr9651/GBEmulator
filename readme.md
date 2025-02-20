@@ -52,3 +52,7 @@ Most things related to gameboy emulator development can be found at https://gbde
     ```
 * https://gekkio.fi/files/gb-docs/gbctr.pdf
     * This helped as a sanity check for some of the instructions that I couldn't wrap my head around.
+
+### Other
+* https://github.com/waf/CSharpRepl
+    * Executing some quick C# snippets without having to setup another enviroment or changing program.cs saved me alot of time.
