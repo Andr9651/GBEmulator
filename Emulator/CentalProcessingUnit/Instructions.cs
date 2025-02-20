@@ -132,7 +132,7 @@ public partial class CPU
 
     private void Or8bitRegisterWithAccumulator(byte value)
     {
-        Accumulator = (byte)(Accumulator & value);
+        Accumulator = (byte)(Accumulator | value);
 
         ZeroFlag = Accumulator == 0;
         SubtractionFlag = false;
