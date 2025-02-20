@@ -5,11 +5,10 @@ namespace GBemulator.CentralProcessingUnit;
 public partial class CPU
 {
     private MMU _mmu;
-    private bool _running;
     private Registers _registers;
     public Registers Registers => _registers;
-
-    private static readonly bool DEBUG = true;
+    public uint MachineCycleCounter { get; private set; } = 0;
+    public bool Running { get; set; }
 
     private bool InterruptMasterEnable
     {
@@ -143,8 +142,6 @@ public partial class CPU
         _registers = registers;
     }
 
-    public uint MachineCycleCounter { get; private set; } = 0;
-
     public byte Read8(ushort address)
     {
         byte result = _mmu.Read8(address);
@@ -171,37 +168,16 @@ public partial class CPU
         ProgramCounter += 2;
     }
 
-    public void Run()
+    public void Cycle()
     {
-        _running = true;
-        int debugRun = 0;
+        byte instructionCode = Read8(ProgramCounter);
 
-        while (_running == true)
+        if (QueueInterruptMasterEnableSet == true)
         {
-            byte instructionCode = Read8(ProgramCounter);
-
-            if (QueueInterruptMasterEnableSet == true)
-            {
-                InterruptMasterEnable = true;
-            }
-
-            ExecuteInstruction(instructionCode);
-            IncrementCycles(instructionCode);
-
-            if (DEBUG)
-            {
-                Console.WriteLine(Registers);
-
-                if (debugRun == 0)
-                {
-                    File.WriteAllBytes("../Memory.bin", _mmu.Memory);
-                    debugRun += Helpers.ConsoleReadNumber();
-                }
-                else
-                {
-                    debugRun--;
-                }
-            }
+            InterruptMasterEnable = true;
         }
+
+        ExecuteInstruction(instructionCode);
+        IncrementCycles(instructionCode);
     }
 }

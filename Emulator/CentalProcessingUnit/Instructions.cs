@@ -377,7 +377,7 @@ public partial class CPU
                 break;
 
             case 0x10:
-                _running = false;
+                Running = false;
                 break;
             case 0x11:
                 DE = Next16Bits;
