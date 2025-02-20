@@ -142,7 +142,7 @@ public partial class CPU
 
     private byte RotateByteLeft(byte value, bool checkZeroFlag)
     {
-        byte result = Accumulator.RotateByteLeft();
+        byte result = value.RotateByteLeft();
 
         ZeroFlag = checkZeroFlag == true && result == 0;
         SubtractionFlag = false;
@@ -164,7 +164,7 @@ public partial class CPU
 
     private byte RotateByteRight(byte value, bool checkZeroFlag)
     {
-        byte result = Accumulator.RotateByteRight();
+        byte result = value.RotateByteRight();
 
         ZeroFlag = checkZeroFlag == true && result == 0;
         SubtractionFlag = false;
