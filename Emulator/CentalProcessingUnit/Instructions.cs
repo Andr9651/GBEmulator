@@ -193,25 +193,25 @@ public partial class CPU
         Accumulator = tempAccumulator;
     }
 
-    private void JumpRelative(ushort programCounter, bool condition)
+    private void JumpRelative(bool condition)
     {
         if (condition == true)
         {
             instructionConditionMet = true;
-            sbyte amount = (sbyte)Read8(programCounter);
-            ProgramCounter = (ushort)(programCounter + amount);
+            sbyte amount = (sbyte)Next8Bits;
+            ProgramCounter = (ushort)(ProgramCounter + amount);
         }
     }
 
     private void PushStack(ushort value)
     {
         StackPointer -= 2;
-        Write16(StackPointer, value);
+        _mmu.Write16(StackPointer, value);
     }
 
     private ushort PopStack()
     {
-        ushort result = Read16(StackPointer);
+        ushort result = _mmu.Read16(StackPointer);
         StackPointer += 2;
 
         return result;
@@ -305,24 +305,14 @@ public partial class CPU
         HalfCarryFlag = false;
     }
 
-    private byte Next8Bits => Read8(ProgramCounter);
-    private ushort Next16Bits => Read16(ProgramCounter);
     private byte HLValue
     {
-        get => Read8(HL);
-        set => Write8(HL, value);
+        get => _mmu.Read8(HL);
+        set => _mmu.Write8(HL, value);
     }
 
     private void ExecuteInstruction(byte instructionCode)
     {
-        // ProgramCounter increments have been deferred so this takes care of the increment that would have happened when reading the current instruction
-
-        // Next 8 and 16 bits after the instruction. Used by some instructions
-        // byte next8Bits = Read8(ProgramCounter);
-        // ushort next16Bits = _mmu.Read16(ProgramCounter);
-
-        // Many instructions uses the byte stored on the address contained in HL
-        // byte HLValue = _mmu.Read8(HL);
         ushort highRAMAddress = 0xFF00;
 
         switch (instructionCode)
@@ -334,7 +324,7 @@ public partial class CPU
                 BC = Next16Bits;
                 break;
             case 0x02:
-                Write8(BC, Accumulator);
+                _mmu.Write8(BC, Accumulator);
                 break;
             case 0x03:
                 BC++;
@@ -352,13 +342,13 @@ public partial class CPU
                 Accumulator = RotateByteLeft(Accumulator, false);
                 break;
             case 0x08:
-                Write16(Next16Bits, StackPointer);
+                _mmu.Write16(Next16Bits, StackPointer);
                 break;
             case 0x09:
                 Add16bitRegisterToHL(BC);
                 break;
             case 0x0A:
-                Accumulator = Read8(BC);
+                Accumulator = _mmu.Read8(BC);
                 break;
             case 0x0B:
                 BC--;
@@ -383,7 +373,7 @@ public partial class CPU
                 DE = Next16Bits;
                 break;
             case 0x12:
-                Write8(DE, Accumulator);
+                _mmu.Write8(DE, Accumulator);
                 break;
             case 0x13:
                 DE++;
@@ -401,13 +391,13 @@ public partial class CPU
                 Accumulator = RotateByteLeftThroughCarry(Accumulator, false);
                 break;
             case 0x18:
-                JumpRelative(ProgramCounter, true);
+                JumpRelative(true);
                 break;
             case 0x19:
                 Add16bitRegisterToHL(DE);
                 break;
             case 0x1A:
-                Accumulator = Read8(DE);
+                Accumulator = _mmu.Read8(DE);
                 break;
             case 0x1B:
                 DE--;
@@ -426,13 +416,13 @@ public partial class CPU
                 break;
 
             case 0x20:
-                JumpRelative(ProgramCounter, ZeroFlag == false);
+                JumpRelative(ZeroFlag == false);
                 break;
             case 0x21:
                 HL = Next16Bits;
                 break;
             case 0x22:
-                Write8(HL, Accumulator);
+                _mmu.Write8(HL, Accumulator);
                 HL++;
                 break;
             case 0x23:
@@ -451,7 +441,7 @@ public partial class CPU
                 DecimalAdjustAccumulator();
                 break;
             case 0x28:
-                JumpRelative(ProgramCounter, ZeroFlag == true);
+                JumpRelative(ZeroFlag == true);
                 break;
             case 0x29:
                 Add16bitRegisterToHL(HL);
@@ -480,7 +470,7 @@ public partial class CPU
                 break;
 
             case 0x30:
-                JumpRelative(ProgramCounter, CarryFlag == false);
+                JumpRelative(CarryFlag == false);
                 break;
             case 0x31:
                 StackPointer = Next16Bits;
@@ -499,7 +489,7 @@ public partial class CPU
                 HLValue = Decrement8bitRegister(HLValue);
                 break;
             case 0x36:
-                Write8(HL, Next8Bits);
+                _mmu.Write8(HL, Next8Bits);
                 break;
             case 0x37:
                 SubtractionFlag = false;
@@ -507,7 +497,7 @@ public partial class CPU
                 CarryFlag = true;
                 break;
             case 0x38:
-                JumpRelative(ProgramCounter, CarryFlag == true);
+                JumpRelative(CarryFlag == true);
                 break;
             case 0x39:
                 Add16bitRegisterToHL(StackPointer);
@@ -682,28 +672,28 @@ public partial class CPU
                 break;
 
             case 0x70:
-                Write8(HL, B);
+                _mmu.Write8(HL, B);
                 break;
             case 0x71:
-                Write8(HL, C);
+                _mmu.Write8(HL, C);
                 break;
             case 0x72:
-                Write8(HL, D);
+                _mmu.Write8(HL, D);
                 break;
             case 0x73:
-                Write8(HL, E);
+                _mmu.Write8(HL, E);
                 break;
             case 0x74:
-                Write8(HL, H);
+                _mmu.Write8(HL, H);
                 break;
             case 0x75:
-                Write8(HL, L);
+                _mmu.Write8(HL, L);
                 break;
             case 0x76:
                 throw new NotImplementedException("HALT not implemented");
                 break;
             case 0x77:
-                Write8(HL, Accumulator);
+                _mmu.Write8(HL, Accumulator);
                 break;
             case 0x78:
                 Accumulator = B;
@@ -1023,13 +1013,13 @@ public partial class CPU
                 break;
 
             case 0xE0:
-                Write8((ushort)(highRAMAddress + Next8Bits), Accumulator);
+                _mmu.Write8((ushort)(highRAMAddress + Next8Bits), Accumulator);
                 break;
             case 0xE1:
                 HL = PopStack();
                 break;
             case 0xE2:
-                Write8((ushort)(highRAMAddress + C), Accumulator);
+                _mmu.Write8((ushort)(highRAMAddress + C), Accumulator);
                 break;
             case 0xE3:
                 throw new Exception("Unused instruction");
@@ -1051,7 +1041,7 @@ public partial class CPU
                 Jump(HL, true);
                 break;
             case 0xEA:
-                Write8(Next16Bits, Accumulator);
+                _mmu.Write8(Next16Bits, Accumulator);
                 break;
             case 0xEB:
                 throw new Exception("Unused instruction");
@@ -1067,13 +1057,13 @@ public partial class CPU
                 break;
 
             case 0xF0:
-                Accumulator = Read8((ushort)(highRAMAddress + Next8Bits));
+                Accumulator = _mmu.Read8((ushort)(highRAMAddress + Next8Bits));
                 break;
             case 0xF1:
                 AccumulatorFlags = PopStack();
                 break;
             case 0xF2:
-                Accumulator = Read8((ushort)(highRAMAddress + C));
+                Accumulator = _mmu.Read8((ushort)(highRAMAddress + C));
                 break;
             case 0xF3:
                 InterruptMasterEnable = false;
@@ -1096,7 +1086,7 @@ public partial class CPU
                 StackPointer = HL;
                 break;
             case 0xFA:
-                Accumulator = Read8(Next16Bits);
+                Accumulator = _mmu.Read8(Next16Bits);
                 break;
             case 0xFB:
                 QueueInterruptMasterEnableSet = true;

@@ -136,41 +136,35 @@ public partial class CPU
         set => (H, L) = Helpers.UshortToBytes(value);
     }
 
+    private byte Next8Bits
+    {
+        get
+        {
+            byte result = _mmu.Read8(ProgramCounter);
+            ProgramCounter++;
+            return result;
+        }
+    }
+
+    private ushort Next16Bits
+    {
+        get
+        {
+            ushort result = _mmu.Read16(ProgramCounter);
+            ProgramCounter += 2;
+            return result;
+        }
+    }
+
     public CPU(MMU mmu, Registers registers)
     {
         _mmu = mmu;
         _registers = registers;
     }
 
-    public byte Read8(ushort address)
-    {
-        byte result = _mmu.Read8(address);
-        ProgramCounter++;
-        return result;
-    }
-
-    public ushort Read16(ushort address)
-    {
-        ushort result = _mmu.Read16(address);
-        ProgramCounter += 2;
-        return result;
-    }
-
-    public void Write8(ushort address, byte value)
-    {
-        _mmu.Write8(address, value);
-        ProgramCounter++;
-    }
-
-    public void Write16(ushort address, ushort value)
-    {
-        _mmu.Write16(address, value);
-        ProgramCounter += 2;
-    }
-
     public void Cycle()
     {
-        byte instructionCode = Read8(ProgramCounter);
+        byte instructionCode = Next8Bits;
 
         if (QueueInterruptMasterEnableSet == true)
         {

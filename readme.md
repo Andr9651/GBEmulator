@@ -11,7 +11,7 @@ It also seemed like a great way to more closely familiarize myself with the basi
     Doing it this way was error prone and resulted in a lot of jumping around when implementing them.\
     It also resulted in alot of missed opportunities for code deduplication on the initial implementation that was then later changed.
     * Using a separated table for ProgramCounter (PC) increments.\
-    I saw someone use a table to handle the M-cycle increments and wondered why the same wasn't done for the PC as that seemed like a similar problem. I didn't immediatly find a reason why so I just did it and faked incrementing the PC during instructions that relied on it. Turns out that it messed with instructions that set the PC directly as they would always be off. So I ended up removing it and just incrementing during memory reads as that was way simpler and seemed to match more closely with the actual CPU.
+    I saw someone use a table to handle the M-cycle increments and wondered why the same wasn't done for the PC as that seemed like a similar problem. I didn't immediatly find a reason why so I just did it and faked incrementing the PC during instructions that relied on it. Turns out that it messed with instructions that set the PC directly as they would always be off. I generally overcomplicated the PC increments and even conflated it with M-cycles at some point which, which resulted in me incrementing the PC on every memory read/write. When in reality it should just be incremented when reading data with the PC.  
 
 ## Links to resources used
 Most things related to gameboy emulator development can be found at https://gbdev.io/, but the following links are pages that I frequented during my development. 
