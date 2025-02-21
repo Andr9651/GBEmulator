@@ -140,6 +140,12 @@ public partial class CPU
         HalfCarryFlag = false;
     }
 
+    // The Rotate instruction mnemonics dont make sense to me and seem flipped
+    // RLC r8 & RRC r8 rotates only the byte. Acts like rotating 8 bits and also saving the overflowing bit in the Carry flag.  
+    // They corrospond to the RotateByte functions
+
+    // RL r8 & RR r8 rotates the byte through the Carry flag. Acts like rotating 9 bits with the carry flag at the end of the rotate direction. 
+    // They corrospond to the RotateByteThroughCarry functions
     private byte RotateByteLeft(byte value, bool checkZeroFlag)
     {
         byte result = value.RotateByteLeft();
@@ -158,6 +164,8 @@ public partial class CPU
 
         byte result = RotateByteLeft(value, checkZeroFlag);
         result = result.SetBit(0, oldCarry);
+
+        ZeroFlag = checkZeroFlag == true && result == 0;
 
         return result;
     }
@@ -180,6 +188,8 @@ public partial class CPU
 
         byte result = RotateByteRight(value, checkZeroFlag);
         result = result.SetBit(7, oldCarry);
+
+        ZeroFlag = checkZeroFlag == true && result == 0;
 
         return result;
     }
@@ -1173,6 +1183,8 @@ public partial class CPU
 
     // The CB instructions were very repetitive and were therefor not made by hand but instead by this: 
     /*
+    StreamWriter outputFile = new StreamWriter("output.txt");
+
     for (int i = 0; i <= 0xFF; i++)
     {
         string register = (i % 8) switch
@@ -1204,16 +1216,18 @@ public partial class CPU
             _ => "",
         };
 
-        Console.WriteLine($"case 0x{i:X2}: ");
-        Console.WriteLine(instruction);
+        outputFile.WriteLine($"case 0x{i:X2}: ");
+        outputFile.WriteLine(instruction);
 
-        Console.WriteLine("break;");
+        outputFile.WriteLine("break;");
 
         if (i % 8 == 7)
         {
-            Console.WriteLine();
+            outputFile.WriteLine();
         }
     }
+
+    outputFile.Close();
     */
 
     private void ExecuteCBInstruction(byte instructionCode)
