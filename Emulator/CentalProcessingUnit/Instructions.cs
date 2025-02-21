@@ -423,7 +423,7 @@ public partial class CPU
                 HL = GetNext16Bits();
                 break;
             case 0x22:
-                _mmu.Write8(HL, Accumulator);
+                HLValue = Accumulator;
                 HL++;
                 break;
             case 0x23:
@@ -477,7 +477,7 @@ public partial class CPU
                 StackPointer = GetNext16Bits();
                 break;
             case 0x32:
-                Accumulator = HLValue;
+                HLValue = Accumulator;
                 HL--;
                 break;
             case 0x33:
@@ -490,7 +490,7 @@ public partial class CPU
                 HLValue = Decrement8bitRegister(HLValue);
                 break;
             case 0x36:
-                _mmu.Write8(HL, GetNext8Bits());
+                HLValue = GetNext8Bits();
                 break;
             case 0x37:
                 SubtractionFlag = false;
@@ -673,28 +673,28 @@ public partial class CPU
                 break;
 
             case 0x70:
-                _mmu.Write8(HL, B);
+                HLValue = B;
                 break;
             case 0x71:
-                _mmu.Write8(HL, C);
+                HLValue = C;
                 break;
             case 0x72:
-                _mmu.Write8(HL, D);
+                HLValue = D;
                 break;
             case 0x73:
-                _mmu.Write8(HL, E);
+                HLValue = E;
                 break;
             case 0x74:
-                _mmu.Write8(HL, H);
+                HLValue = H;
                 break;
             case 0x75:
-                _mmu.Write8(HL, L);
+                HLValue = L;
                 break;
             case 0x76:
                 throw new NotImplementedException("HALT not implemented");
                 break;
             case 0x77:
-                _mmu.Write8(HL, Accumulator);
+                HLValue = Accumulator;
                 break;
             case 0x78:
                 Accumulator = B;
