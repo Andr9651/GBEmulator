@@ -12,7 +12,7 @@ It also seemed like a great way to more closely familiarize myself with the basi
 * CPU_instrs
     - [ ] 01-special.gb
     - [ ] 02-interrupts.gb
-    - [ ] 03-op sp,hl.gb
+    - [x] 03-op sp,hl.gb
     - [x] 04-op r,imm.gb
     - [x] 05-op rp.gb
     - [x] 06-ld r,r.gb

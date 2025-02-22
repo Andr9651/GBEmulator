@@ -261,21 +261,16 @@ public partial class CPU
 
     private ushort AddSignedByteToStackPointer(byte value)
     {
-        sbyte signedValue = (sbyte)value;
-        int result = StackPointer + signedValue;
+        int result = StackPointer + (sbyte)value;
 
         ZeroFlag = false;
         SubtractionFlag = false;
-        CarryFlag = result > 0xFFFF || result < 0;
-
-        if (signedValue >= 0)
-        {
-            HalfCarryFlag = CheckHalfCarryAddition((byte)StackPointer, (byte)signedValue);
-        }
-        else
-        {
-            HalfCarryFlag = CheckHalfCarrySubtraction((byte)StackPointer, (byte)-signedValue);
-        }
+        // The calculation for the carry and half carry flags are a bit weird here and I'm still not sure I fully understand it
+        // This post helped make sense of why the flags are weird in this one https://www.reddit.com/r/EmuDev/comments/y51i1c/comment/isiizl4/
+        // The original hardware produces the flags during an initial unsigned 8-bit addition,
+        // hence why the flag calculations only use the byte part of the StackPointer and the unsigned value.
+        CarryFlag = (StackPointer & 0x00FF) + value > 0xFF;
+        HalfCarryFlag = CheckHalfCarryAddition((byte)StackPointer, value);
 
         return (ushort)result;
     }
