@@ -36,10 +36,13 @@ public partial class CPU
         get => _registers.Accumulator;
         set => _registers.Accumulator = value;
     }
+
+    // Only the upper 4 bits can be used, the lower 4 should always be 0
+    // However certain instructions will try to assign the lower bits so a mask is used to handle that
     private byte Flags
     {
-        get => _registers.Flags;
-        set => _registers.Flags = value;
+        get => (byte)(_registers.Flags & 0xF0);
+        set => _registers.Flags = (byte)(value & 0xF0);
     }
     private byte B
     {
