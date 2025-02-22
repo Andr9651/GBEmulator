@@ -10,7 +10,7 @@ It also seemed like a great way to more closely familiarize myself with the basi
 <summary>Blarrgs Test ROMs</summary>
 
 * CPU_instrs
-    - [ ] 01-special.gb
+    - [x] 01-special.gb
     - [ ] 02-interrupts.gb
     - [x] 03-op sp,hl.gb
     - [x] 04-op r,imm.gb
