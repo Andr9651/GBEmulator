@@ -77,11 +77,12 @@ public partial class CPU
     private void Add8bitRegisterAndCarryToAccumulator(byte value)
     {
         int result = Accumulator + value + (CarryFlag ? 1 : 0);
+        bool oldCarryFlag = CarryFlag;
 
         ZeroFlag = ((byte)result) == 0;
         SubtractionFlag = false;
         CarryFlag = result > 0xFF;
-        HalfCarryFlag = CheckHalfCarryAddition(Accumulator, value, CarryFlag);
+        HalfCarryFlag = CheckHalfCarryAddition(Accumulator, value, oldCarryFlag);
 
         Accumulator = (byte)result; // numbers greater than 255 overflow when cast to byte
     }
@@ -101,11 +102,12 @@ public partial class CPU
     private void Sub8bitRegisterAndCarryFromAccumulator(byte value)
     {
         int result = Accumulator - value - (CarryFlag ? 1 : 0);
+        bool oldCarryFlag = CarryFlag;
 
         ZeroFlag = ((byte)result) == 0;
         SubtractionFlag = true;
         CarryFlag = result < 0;
-        HalfCarryFlag = CheckHalfCarrySubtraction(Accumulator, value, CarryFlag);
+        HalfCarryFlag = CheckHalfCarrySubtraction(Accumulator, value, oldCarryFlag);
 
         Accumulator = (byte)result; // negative numbers underflow when cast to byte
     }
