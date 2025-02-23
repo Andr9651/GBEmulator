@@ -91,6 +91,23 @@ public class MMU
         var (mostSignificant, leastSignificant) = Helpers.UshortToBytes(value);
 
         _memory[address] = leastSignificant;
-        _memory[address + 1] = mostSignificant;
+        _memory[(ushort)(address + 1)] = mostSignificant;
+    }
+
+    public Interrupt GetNextInterrupt()
+    {
+        byte interruptEnable = _memory[0xFFFF];
+        byte interruptFlag = _memory[0xFF0F];
+
+        // The order of the patterns matter as the lower interrupt flags take precident over the higher ones (e.g. LCD is over Timer, but under VBlank)
+        return (interruptEnable, interruptFlag) switch
+        {
+            var (enable, flag) when enable.GetBit(0) && flag.GetBit(0) => Interrupt.VBlank,
+            var (enable, flag) when enable.GetBit(1) && flag.GetBit(1) => Interrupt.LCD,
+            var (enable, flag) when enable.GetBit(2) && flag.GetBit(2) => Interrupt.Timer,
+            var (enable, flag) when enable.GetBit(3) && flag.GetBit(3) => Interrupt.Serial,
+            var (enable, flag) when enable.GetBit(4) && flag.GetBit(4) => Interrupt.Joypad,
+            _ => Interrupt.None
+        };
     }
 }

@@ -163,14 +163,60 @@ public partial class CPU
 
     public void Cycle()
     {
-        byte instructionCode = GetNext8Bits();
+        HandleInterrupts();
 
-        if (QueueInterruptMasterEnableSet == true)
-        {
-            InterruptMasterEnable = true;
-        }
+        byte instructionCode = GetNext8Bits();
 
         ExecuteInstruction(instructionCode);
         IncrementCycles(instructionCode);
+    }
+
+    // https://gbdev.io/pandocs/Interrupts.html#interrupt-handling
+    public bool HandleInterrupts()
+    {
+        if (QueueInterruptMasterEnableSet == true)
+        {
+            InterruptMasterEnable = true;
+            QueueInterruptMasterEnableSet = false;
+        }
+
+        if (InterruptMasterEnable == false)
+        {
+            return false;
+        }
+
+        ushort interruptAddress;
+
+        switch (_mmu.GetNextInterrupt())
+        {
+            case Interrupt.VBlank:
+                interruptAddress = 0x0040;
+                break;
+            case Interrupt.LCD:
+                interruptAddress = 0x0048;
+                break;
+            case Interrupt.Timer:
+                interruptAddress = 0x0050;
+                break;
+            case Interrupt.Serial:
+                interruptAddress = 0x0058;
+                break;
+            case Interrupt.Joypad:
+                interruptAddress = 0x0060;
+                break;
+            default:
+                return false;
+        }
+
+        InterruptMasterEnable = false;
+        MachineCycleCounter += 2;
+
+        PushStack(ProgramCounter);
+        MachineCycleCounter += 2;
+
+        ProgramCounter = interruptAddress;
+        MachineCycleCounter += 1;
+
+        return true;
     }
 }
