@@ -31,7 +31,7 @@ public class MMU
 
     public byte Read8(ushort address) => address switch
     {
-        <= 0x00FF when _bootMode == false => _bootROM[address], // During boot the boot ROM is initially mapped over cartridge ROM
+        <= 0x00FF when _bootMode == true => _bootROM[address], // During boot the boot ROM is initially mapped over cartridge ROM
         <= 0x3FFF => Read8Direct(address),                            // ROM Bank 00
         <= 0x7FFF => Read8Direct(address),                            // ROM Bank 01-NN (switchable ROM Bank)
         <= 0x9FFF => Read8Direct(address),                            // VRAM (Switchable in CGB mode)
