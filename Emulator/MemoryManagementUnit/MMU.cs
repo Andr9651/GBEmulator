@@ -31,20 +31,20 @@ public class MMU
 
     public byte Read8(ushort address) => address switch
     {
-        <= 0x00FF when _bootMode == true => _bootROM[address], // During boot the boot ROM is initially mapped over cartridge ROM
-        <= 0x3FFF => Read8Direct(address),                            // ROM Bank 00
-        <= 0x7FFF => Read8Direct(address),                            // ROM Bank 01-NN (switchable ROM Bank)
-        <= 0x9FFF => Read8Direct(address),                            // VRAM (Switchable in CGB mode)
-        <= 0xBFFF => Read8Direct(address),                            // External RAM
-        <= 0xCFFF => Read8Direct(address),                            // Work RAM
-        <= 0xDFFF => Read8Direct(address),                            // Work RAM (Switchable in CGB mode)
-        <= 0xFDFF => Read8Direct((ushort)(address - 0x2000)),         // Echo RAM (mirror of C000–DDFF)
-        <= 0xFE9F => Read8Direct(address),                            // Object attribute memory (OAM)
-        <= 0xFEFF => 0xFF,                                      // Not Usable, see https://gbdev.io/pandocs/Memory_Map.html#fea0feff-range
-        <= 0xFF44 => 0x90,                                      // Hardcoded LCD for Gameboy Doctor
-        <= 0xFF7F => Read8Direct(address),                            // I/O Registers
-        <= 0xFFFE => Read8Direct(address),                            // High RAM
-        <= 0xFFFF => Read8Direct(address),                            // Interrupt Enable Register (IE)
+        <= 0x00FF when _bootMode == true => _bootROM[address],      // During boot the boot ROM is initially mapped over cartridge ROM
+        <= 0x3FFF => Read8Direct(address),                          // ROM Bank 00
+        <= 0x7FFF => Read8Direct(address),                          // ROM Bank 01-NN (switchable ROM Bank)
+        <= 0x9FFF => Read8Direct(address),                          // VRAM (Switchable in CGB mode)
+        <= 0xBFFF => Read8Direct(address),                          // External RAM
+        <= 0xCFFF => Read8Direct(address),                          // Work RAM
+        <= 0xDFFF => Read8Direct(address),                          // Work RAM (Switchable in CGB mode)
+        <= 0xFDFF => Read8Direct((ushort)(address - 0x2000)),       // Echo RAM (mirror of C000–DDFF)
+        <= 0xFE9F => Read8Direct(address),                          // Object attribute memory (OAM)
+        <= 0xFEFF => 0xFF,                                          // Not Usable, see https://gbdev.io/pandocs/Memory_Map.html#fea0feff-range
+        0xFF44 => 0x90,                                             // Hardcoded LCD for Gameboy Doctor
+        <= 0xFF7F => Read8Direct(address),                          // I/O Registers
+        <= 0xFFFE => Read8Direct(address),                          // High RAM
+        <= 0xFFFF => Read8Direct(address),                          // Interrupt Enable Register (IE)
     };
 
     public void Write8Mapped(ushort address, byte value)
