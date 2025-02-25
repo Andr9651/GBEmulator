@@ -2,55 +2,51 @@
 using GBemulator.CentralProcessingUnit;
 using GBemulator.MemoryManagementUnit;
 
-bool DEBUG = true;
+var tokens = Helpers.TokenizeArgs(args);
 
-string path = args[0] ?? "../ROMs";
-int cycleCount = int.TryParse(args[1], out int number) ? number : 50000;
+bool writeLogs = Helpers.GetArgBool(tokens, "--write-logs");
+string romPath = Helpers.GetArgString(tokens, "--path") ?? "../ROMs";
+int cycleCount = Helpers.GetArgInt(tokens, "--max-cycles") ?? (writeLogs == true ? 500_000 : 5_000_000);
+int nextCyclePause = Helpers.GetArgInt(tokens, "--pause-at-cycle") ?? -1;
 
-byte[] romBytes = Helpers.LoadROM(path);
-
+byte[] romBytes = Helpers.LoadROM(romPath);
 var mmu = new MMU(romBytes);
-
 var registers = Registers.PostBootRegistersGameboyDoctor();
-
 var cpu = new CPU(mmu, registers);
 
-int debugRun = -1;
-
-cpu.Running = true;
-
-StreamWriter logFile = new StreamWriter("log.txt");
+var logFile = new StreamWriter("log.txt");
 int linecount = 0;
 
+cpu.Running = true;
 while (cpu.Running == true)
 {
-    if (linecount > cycleCount) break;
-    if (DEBUG)
+    ushort programCounter = cpu.Registers.ProgramCounter;
+
+    string logString = cpu.Registers.ToString() + " PCMEM:";
+    logString += $"{mmu.Read8(programCounter):X2},";
+    logString += $"{mmu.Read8(++programCounter):X2},";
+    logString += $"{mmu.Read8(++programCounter):X2},";
+    logString += $"{mmu.Read8(++programCounter):X2}";
+
+    if (writeLogs == true)
     {
-        string logString = cpu.Registers.ToString() + " PCMEM:";
-
-        ushort programCounter = cpu.Registers.ProgramCounter;
-
-        logString += $"{mmu.Read8(programCounter):X2},";
-        logString += $"{mmu.Read8(++programCounter):X2},";
-        logString += $"{mmu.Read8(++programCounter):X2},";
-        logString += $"{mmu.Read8(++programCounter):X2}";
-
         logFile.WriteLine(logString);
+    }
 
-        if (debugRun == 0)
-        {
-            // File.WriteAllBytes("../Memory.bin", mmu.Memory);
-            debugRun += Helpers.ConsoleReadNumber();
-        }
-        else
-        {
-            debugRun--;
-        }
+    if (nextCyclePause == 0)
+    {
+        Console.WriteLine(logString);
+        nextCyclePause += Helpers.ConsoleReadNumber();
+    }
+    else
+    {
+        nextCyclePause--;
     }
 
     cpu.Cycle();
+
     linecount++;
+    if (linecount > cycleCount) break;
 }
 
 logFile.Close();

@@ -280,4 +280,59 @@ public static class Helpers
             }
         }
     }
+
+    public static Dictionary<string, string?> TokenizeArgs(string[] args)
+    {
+        var tokens = new Dictionary<string, string?>();
+
+        string lastToken = "--path"; // Read the first option as a path if it doesn't start with "--"
+
+        for (int i = 0; i < args.Length; i++)
+        {
+            string arg = args[i];
+
+            if (arg.StartsWith("--"))
+            {
+                tokens[arg] = null;
+                lastToken = arg;
+            }
+            else if (string.IsNullOrEmpty(lastToken) == false)
+            {
+                tokens[lastToken] = arg;
+                lastToken = "";
+            }
+        }
+
+        return tokens;
+    }
+
+    public static string? GetArgString(Dictionary<string, string?> tokens, string argName)
+    {
+        if (tokens.TryGetValue(argName, out var value) == false)
+        {
+            return null;
+        }
+
+        return value;
+    }
+
+    public static bool GetArgBool(Dictionary<string, string?> tokens, string argName)
+    {
+        return tokens.ContainsKey(argName);
+    }
+
+    public static int? GetArgInt(Dictionary<string, string?> tokens, string argName)
+    {
+        if (tokens.TryGetValue(argName, out var value) == false)
+        {
+            return null;
+        }
+
+        if (int.TryParse(value, out var intValue) == false)
+        {
+            return null;
+        }
+
+        return intValue;
+    }
 }
