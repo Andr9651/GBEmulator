@@ -83,6 +83,10 @@ public class MMU
 
     public void Write8(ushort address, byte value)
     {
+        if (address == 0xFF01) // Serial buffer address
+        {
+            Console.Write((char)value);
+        }
         _memory[address] = value;
     }
 
