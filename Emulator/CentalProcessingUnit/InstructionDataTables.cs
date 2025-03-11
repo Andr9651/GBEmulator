@@ -76,21 +76,20 @@ public partial class CPU
 
     private void IncrementCycles(byte InstructionCode)
     {
+        byte machineCycles = MachineCyclesPerInstruction[InstructionCode];
+
         if (instructionConditionMet == true)
         {
             instructionConditionMet = false;
-
-            MachineCycleCounter += MachineCyclesPerConditionalInstruction[InstructionCode];
-            return;
+            machineCycles = MachineCyclesPerConditionalInstruction[InstructionCode];
         }
 
         if (InstructionCode == 0xCB)
         {
             byte CBInstructionCode = _mmu.Read8((ushort)(ProgramCounter + 1));
-            MachineCycleCounter += MachineCyclesPerCBInstruction[CBInstructionCode];
-            return;
+            machineCycles = MachineCyclesPerCBInstruction[CBInstructionCode];
         }
 
-        MachineCycleCounter += MachineCyclesPerInstruction[InstructionCode];
+        _mmu.IncrementTimersByMCycles(machineCycles);
     }
 }

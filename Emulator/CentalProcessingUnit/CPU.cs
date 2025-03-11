@@ -7,7 +7,6 @@ public partial class CPU
     private MMU _mmu;
     private Registers _registers;
     public Registers Registers => _registers;
-    public uint MachineCycleCounter { get; private set; } = 0;
     public bool Running { get; set; }
 
     private bool InterruptMasterEnable
@@ -209,13 +208,13 @@ public partial class CPU
         }
 
         InterruptMasterEnable = false;
-        MachineCycleCounter += 2;
+        _mmu.IncrementTimersByMCycles(2);
 
         PushStack(ProgramCounter);
-        MachineCycleCounter += 2;
+        _mmu.IncrementTimersByMCycles(2);
 
         ProgramCounter = interruptAddress;
-        MachineCycleCounter += 1;
+        _mmu.IncrementTimersByMCycles(1);
 
         return true;
     }

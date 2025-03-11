@@ -9,6 +9,36 @@ public class MMU
     private readonly byte[] _bootROM;
     private bool _bootMode;
 
+    private byte _dividerRegister
+    {
+        get => _memory[0xFF04];
+        set => _memory[0xFF04] = value;
+    }
+
+    private byte _timerCounter
+    {
+        get => _memory[0xFF05];
+        set => _memory[0xFF05] = value;
+    }
+
+    private byte _timerModulo
+    {
+        get => _memory[0xFF06];
+        set => _memory[0xFF06] = value;
+    }
+
+    private byte _interruptEnable
+    {
+        get => _memory[0xFFFF];
+        set => _memory[0xFFFF] = value;
+    }
+
+    private byte _interruptFlags
+    {
+        get => _memory[0xFF0F];
+        set => _memory[0xFF0F] = value;
+    }
+
     public MMU(byte[]? memory = null, bool bootMode = false, byte[]? bootROM = null)
     {
         // Memory array should be 2^16
@@ -51,18 +81,22 @@ public class MMU
     {
         switch (address)
         {
-            case <= 0x3FFF: break;                                            // ROM Bank 00
-            case <= 0x7FFF: break;                                            // ROM Bank 01-NN (switchable ROM Bank)
-            case <= 0x9FFF: Write8(address, value); break;                    // VRAM (Switchable in CGB mode)
-            case <= 0xBFFF: Write8(address, value); break;                    // External RAM
-            case <= 0xCFFF: Write8(address, value); break;                    // Work RAM
-            case <= 0xDFFF: Write8(address, value); break;                    // Work RAM (Switchable in CGB mode)
-            case <= 0xFDFF: Write8((ushort)(address - 0x2000), value); break; // Echo RAM (mirror of C000–DDFF)
-            case <= 0xFE9F: Write8(address, value); break;                    // Object attribute memory (OAM)
-            case <= 0xFEFF: break;                                            // Not Usable, see https://gbdev.io/pandocs/Memory_Map.html#fea0feff-range
-            case <= 0xFF7F: Write8(address, value); break;                    // I/O Registers
-            case <= 0xFFFE: Write8(address, value); break;                    // High RAM
-            case <= 0xFFFF: Write8(address, value); break;                    // Interrupt Enable Register (IE)
+            case <= 0x3FFF: break;                                              // ROM Bank 00
+            case <= 0x7FFF: break;                                              // ROM Bank 01-NN (switchable ROM Bank)
+            case <= 0x9FFF: Write8(address, value); break;                      // VRAM (Switchable in CGB mode)
+            case <= 0xBFFF: Write8(address, value); break;                      // External RAM
+            case <= 0xCFFF: Write8(address, value); break;                      // Work RAM
+            case <= 0xDFFF: Write8(address, value); break;                      // Work RAM (Switchable in CGB mode)
+            case <= 0xFDFF: Write8((ushort)(address - 0x2000), value); break;   // Echo RAM (mirror of C000–DDFF)
+            case <= 0xFE9F: Write8(address, value); break;                      // Object attribute memory (OAM)
+            case <= 0xFEFF: break;                                              // Not Usable, see https://gbdev.io/pandocs/Memory_Map.html#fea0feff-range
+            case 0xFF04: Write8(address, 0x00); break;                          // DIB: Divider register  
+            case 0xFF05: Write8(address, 0x00); break;                          // TIMA: Timer counter  
+            case 0xFF06: Write8(address, 0x00); break;                          // TMA: Timer modulo  
+            case 0xFF07: Write8(address, 0x00); break;                          // TCA: Timer control  
+            case <= 0xFF7F: Write8(address, value); break;                      // I/O Registers
+            case <= 0xFFFE: Write8(address, value); break;                      // High RAM
+            case <= 0xFFFF: Write8(address, value); break;                      // Interrupt Enable Register (IE)
         }
     }
 
@@ -87,6 +121,11 @@ public class MMU
         {
             Console.Write((char)value);
         }
+
+        if (address == 0xFFFF) // Serial buffer address
+        {
+            Console.WriteLine($"Interrupt Enable: {value:b8}");
+        }
         _memory[address] = value;
     }
 
@@ -100,8 +139,8 @@ public class MMU
 
     public Interrupt GetNextInterrupt()
     {
-        byte interruptEnable = _memory[0xFFFF];
-        byte interruptFlag = _memory[0xFF0F];
+        byte interruptEnable = _interruptEnable;
+        byte interruptFlag = _interruptFlags;
 
         // The order of the patterns matter as the lower interrupt flags take precident over the higher ones (e.g. LCD is over Timer, but under VBlank)
         return (interruptEnable, interruptFlag) switch
@@ -113,5 +152,18 @@ public class MMU
             var (enable, flag) when enable.GetBit(4) && flag.GetBit(4) => Interrupt.Joypad,
             _ => Interrupt.None
         };
+    }
+
+    // https://gbdev.io/pandocs/Timer_and_Divider_Registers.html
+    public void IncrementTimersByMCycles(int value)
+    {
+        _dividerRegister = (byte)(_dividerRegister + value * 4);
+
+        int newCounter = _timerCounter + value * 4;
+        if (newCounter > 0xFF)
+        {
+            _timerCounter = (byte)(_timerModulo + (newCounter - 0xFF));
+            _interruptFlags = _interruptFlags.SetBit(2, true);
+        }
     }
 }

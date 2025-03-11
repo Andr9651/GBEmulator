@@ -8,6 +8,13 @@ bool writeLogs = Helpers.GetArgBool(tokens, "--write-logs");
 string romPath = Helpers.GetArgString(tokens, "--path") ?? "../ROMs";
 int cycleCount = Helpers.GetArgInt(tokens, "--max-cycles") ?? (writeLogs == true ? 500_000 : 5_000_000);
 int nextCyclePause = Helpers.GetArgInt(tokens, "--pause-at-cycle") ?? -1;
+bool pauseForDebugger = Helpers.GetArgBool(tokens, "--pause");
+
+if (pauseForDebugger)
+{
+    Console.WriteLine("Pausing to wait for debugger. Press any key to continue");
+    Console.Read();
+}
 
 byte[] romBytes = Helpers.LoadROM(romPath);
 var mmu = new MMU(romBytes);
