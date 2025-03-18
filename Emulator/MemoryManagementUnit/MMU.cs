@@ -143,7 +143,7 @@ public class MMU
         byte interruptFlag = _interruptFlags;
 
         // The order of the patterns matter as the lower interrupt flags take precident over the higher ones (e.g. LCD is over Timer, but under VBlank)
-        return (interruptEnable, interruptFlag) switch
+        var interrupt = (interruptEnable, interruptFlag) switch
         {
             var (enable, flag) when enable.GetBit(0) && flag.GetBit(0) => Interrupt.VBlank,
             var (enable, flag) when enable.GetBit(1) && flag.GetBit(1) => Interrupt.LCD,
@@ -152,6 +152,18 @@ public class MMU
             var (enable, flag) when enable.GetBit(4) && flag.GetBit(4) => Interrupt.Joypad,
             _ => Interrupt.None
         };
+
+        switch (interrupt)
+        {
+            case Interrupt.VBlank: _interruptFlags = Helpers.SetBit(_interruptFlags, 0, false); break;
+            case Interrupt.LCD: _interruptFlags = Helpers.SetBit(_interruptFlags, 1, false); break;
+            case Interrupt.Timer: _interruptFlags = Helpers.SetBit(_interruptFlags, 2, false); break;
+            case Interrupt.Serial: _interruptFlags = Helpers.SetBit(_interruptFlags, 3, false); break;
+            case Interrupt.Joypad: _interruptFlags = Helpers.SetBit(_interruptFlags, 4, false); break;
+            default: break;
+        }
+
+        return interrupt;
     }
 
     // https://gbdev.io/pandocs/Timer_and_Divider_Registers.html
