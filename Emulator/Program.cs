@@ -4,7 +4,7 @@ using GBemulator.MemoryManagementUnit;
 
 var tokens = Helpers.TokenizeArgs(args);
 
-bool writeLogs = Helpers.GetArgBool(tokens, "--write-logs");
+bool writeLogs = Helpers.GetArgBool(tokens, "--log");
 string romPath = Helpers.GetArgString(tokens, "--path") ?? "../ROMs";
 int cycleCount = Helpers.GetArgInt(tokens, "--max-cycles") ?? (writeLogs == true ? 500_000 : 5_000_000);
 int nextCyclePause = Helpers.GetArgInt(tokens, "--pause-at-cycle") ?? -1;
