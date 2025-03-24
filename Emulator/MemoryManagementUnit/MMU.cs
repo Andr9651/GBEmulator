@@ -27,6 +27,31 @@ public class MMU
         set => _memory[0xFF06] = value;
     }
 
+    private byte _timerControl
+    {
+        get => _memory[0xFF07];
+        set => _memory[0xFF07] = value;
+    }
+
+    private bool _timerControlEnable
+    {
+        get => _memory[0xFF07].GetBit(2);
+        set => _memory[0xFF07] = _memory[0xFF07].SetBit(2, value);
+    }
+
+    private int _timerControlClockSelect
+    {
+        get => (_memory[0xFF07] & 0b0000_0011) switch
+        {
+            0b0000_0000 => 256,
+            0b0000_0001 => 4,
+            0b0000_0010 => 16,
+            0b0000_0011 => 64,
+
+            _ => 256,
+        };
+    }
+
     private byte _interruptEnable
     {
         get => _memory[0xFFFF];
@@ -169,9 +194,11 @@ public class MMU
     // https://gbdev.io/pandocs/Timer_and_Divider_Registers.html
     public void IncrementTimersByMCycles(int value)
     {
-        _dividerRegister = (byte)(_dividerRegister + value * 4);
+
+        int newDivider = _dividerRegister + value * 4;
 
         int newCounter = _timerCounter + value * 4;
+
         if (newCounter > 0xFF)
         {
             _timerCounter = (byte)(_timerModulo + (newCounter - 0xFF));
