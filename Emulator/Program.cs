@@ -35,7 +35,7 @@ while (cpu.Running == true)
     logString += $"{mmu.Read8(++programCounter):X2},";
     logString += $"{mmu.Read8(++programCounter):X2}";
 
-    if (writeLogs == true)
+    if (writeLogs == true && cpu.Halting == false)
     {
         logFile.WriteLine(logString);
     }

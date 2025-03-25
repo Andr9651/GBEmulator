@@ -8,6 +8,7 @@ public partial class CPU
     private Registers _registers;
     public Registers Registers => _registers;
     public bool Running { get; set; }
+    public bool Halting { get; set; }
 
     private bool InterruptMasterEnable
     {
@@ -164,10 +165,17 @@ public partial class CPU
     {
         HandleInterrupts();
 
-        byte instructionCode = GetNext8Bits();
+        if (Halting != true)
+        {
+            byte instructionCode = GetNext8Bits();
 
-        ExecuteInstruction(instructionCode);
-        IncrementCycles(instructionCode);
+            ExecuteInstruction(instructionCode);
+            IncrementCycles(instructionCode);
+        }
+        else
+        {
+            IncrementCycles(0x00);
+        }
     }
 
     // https://gbdev.io/pandocs/Interrupts.html#interrupt-handling
@@ -178,6 +186,9 @@ public partial class CPU
             InterruptMasterEnable = true;
             QueueInterruptMasterEnableSet = false;
         }
+
+        System.Console.WriteLine("halt stopped");
+        Halting = false;
 
         if (InterruptMasterEnable == false)
         {

@@ -698,7 +698,8 @@ public partial class CPU
                 HLValue = L;
                 break;
             case 0x76:
-                throw new NotImplementedException("HALT not implemented");
+                System.Console.WriteLine("halt started");
+                Halting = true;
                 break;
             case 0x77:
                 HLValue = Accumulator;
